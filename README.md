@@ -1,7 +1,8 @@
-Pygame Top-Down Shooter 
+Pygame Top-Down Shooter Engine
 
-A top-down zombie survival shooter game built with Pygame where players face increasingly difficult waves of zombies while unlocking new weapons, gain experience and unlock new abilities.
+This is an open source project, which anyone can contribute to, download and use in their own educational, personal or commmercial projects.
 
+A top-down survival shooter engine built with Pygame where players face increasingly difficult waves of zombies while unlocking new weapons, gain experience and unlock new abilities.
 
 ![Untitled](https://github.com/user-attachments/assets/0fefd832-2a95-4a6e-b264-cf53ee6bdff0)
 
