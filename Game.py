@@ -817,7 +817,7 @@ def unlock_random_weapon():
         print("All weapons are already unlocked!")
 
 def calculate_zombies(wave):
-    total_zombies = 120
+    total_zombies = 75
     max_zombie_types = min(26, wave)
     zombies_per_type = max(1, total_zombies // max_zombie_types)
     zombies_to_spawn = [(chr(97 + i), zombies_per_type) for i in range(max_zombie_types)]
