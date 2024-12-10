@@ -1,4 +1,4 @@
-# The Black Box Project
+Pygame Top-Down Shooter 
 
 A top-down zombie survival shooter game built with Pygame where players face increasingly difficult waves of zombies while unlocking new weapons, gain experience and unlock new abilities.
 
