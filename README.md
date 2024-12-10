@@ -1,66 +1,38 @@
-Pygame Top-Down Shooter Engine
+---
 
-This is an open source project, which anyone can contribute to, download and use in their own educational, personal or commmercial projects.
+**Pygame Top-Down Shooter Engine**  
 
-A top-down survival shooter engine built with Pygame where players face increasingly difficult waves of zombies while unlocking new weapons, gain experience and unlock new abilities.
+Hey, gamers and coders! Check out this open-source **top-down survival shooter engine** built with Pygame. It's perfect for anyone looking to learn, build, or even launch their own project—commercial, personal, or just for fun!  
 
-![Untitled](https://github.com/user-attachments/assets/0fefd832-2a95-4a6e-b264-cf53ee6bdff0)
+🔫 **What’s it about?**  
+You’ll fight off waves of zombies, unlock badass weapons, level up, and gain abilities as the game gets tougher.  
 
-Features
+🎮 **Features**  
+- Guns galore: pistols, SMGs, rifles, shotguns, and more!  
+- Wave-based zombie madness 🧟  
+- XP system and unlockable weapons  
+- Slick blood splatters, muzzle flashes, and camera controls  
+- Easy auto-fire mode and varied zombie enemies  
 
-- Multiple weapon categories including pistols, SMGs, rifles, shotguns, and more
-- Wave-based zombie survival gameplay
-- Experience and leveling system
-- Weapon unlocking progression
-- Dynamic blood particle effects and muzzle flashes
-- Smooth camera movement and player controls
-- Auto-fire capability
-- Various zombie types with different health and speed attributes
+👾 **Controls**  
+- Move: WASD  
+- Shoot: Left Click  
+- Reload: R  
+- Change weapons: Mouse Wheel or 1-7 keys  
+- Pause: ESC  
 
-Controls
+💻 **How to Play**  
+1. Clone the repo:  
+   `git clone https://github.com/poppadomus/pygameTDS.git`  
+2. Install dependencies:  
+   `pip install pygame`  
+3. Run it:  
+   `python game.py`  
 
-- WASD - Move player
-- Left Mouse Button - Shoot
-- Right Mouse Button - Toggle auto-fire
-- R - Reload weapon
-- 1-7 - Switch weapon categories
-- Mouse Wheel - Cycle weapons within category
-- ESC - Pause game
+🛠 **Contributions? Yes, please!**  
+Fork the repo, make your changes, and submit a pull request. Let’s build an awesome top down game engine together!
 
-Requirements
+---
 
-- Python 3.x
-- Pygame
-
-Installation
-
-1. Clone the repository
-
-git clone https://github.com/poppadomus/pygameTDS.git
-
-README.md
-Install dependencies
-pip install pygame
-
-Run the game
-python game.py
-
-Game Mechanics
-Survive waves of zombies
-Gain experience by killing zombies and collecting energy orbs
-Unlock new weapons as you progress
-Each wave increases in difficulty
-Health system with visual indicators
-Score tracking and wave counter
-Contributing
-Feel free to fork the repository and submit pull requests. All contributions are welcome!
-
-License
-This project is open source.
-
-Credits
-Game Developer: [Poppadomus]
-Graphics & Sound Effects: Original content
-Font: PS2P and custom bloody font
-Version
+Sounds good?
 Current Version: Alpha 1.01
