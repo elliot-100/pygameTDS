@@ -9,16 +9,19 @@ from collections import defaultdict
 pygame.init()
 
 level_thresholds = {
-    1: 0,
-    2: 1000,
-    3: 2000,
-    4: 3000,
-    5: 4000,
-    6: 5000,
-    7: 6000,
-    8: 7000,
-    9: 8000,
+    1: 25,
+    2: 35,
+    3: 45,
+    4: 55,
+    5: 65,
+    6: 75,
+    7: 85,
+    8: 95,
+    9: 100,
+    10: 9999999,
+
 }
+
 
 constants = {
     'WIDTH': 1920,
@@ -34,13 +37,13 @@ constants = {
     'DARK_RED': (158,3,3),
     'ZOMBIE_RADIUS': 0.1,
     'PLAYER_SPEED': 0.7,
-    'SPAWN_INTERVAL': 300,
+    'SPAWN_INTERVAL': 450,
     'SMALL_CIRCLE_LIFETIME': 9999,
     'FPS': 60,
     'ZOMBIE_FADE_DURATION': 150,
-    'MAX_ALIVE_ZOMBIES': 10,
-    'HEALTH_BAR_VISIBLE_DURATION': 2000,
-    'BLOOD_SPRAY_PARTICLES': 3,
+    'MAX_ALIVE_ZOMBIES': 100,
+    'HEALTH_BAR_VISIBLE_DURATION': 120,
+    'BLOOD_SPRAY_PARTICLES': 5,
     'BLOOD_SPRAY_LIFETIME': 100000,
     'PLAYER_HEALTH': 7500,
     'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
@@ -61,13 +64,25 @@ constants.update({
          (0, 255, 0),
     ]
 })
+player_xp_multiplier = 1.0
+upgrade_options = [
+    "HP +20%",
+    "Bullet SPD 10%",
+    "Bullet DMG 5%",
+    "Reload SPD +5%",
+    "Mag Ammo +5%",
+    "Fire Rate +5%",
+    "Precision +5%",
+    "Increase XP Gain",
+    "a Random Weapon"
+]
 
 class EnergyOrb(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = orb_image
         self.rect = self.image.get_rect(center=(x, y))
-        self.lifetime = 10000 
+        self.lifetime = 10000000
         self.spawn_time = pygame.time.get_ticks()
 
     def update(self):
@@ -126,6 +141,65 @@ fire_sound_mosin = pygame.mixer.Sound('mosin.mp3')
 firing_sound_mosin = pygame.mixer.Sound('mosinshot.mp3')
 fire_sound_PKM = pygame.mixer.Sound('pkm.mp3')
 fire_sound_skorpian = pygame.mixer.Sound('skorpian.mp3')
+
+def render_upgrade_panel():
+    overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']))
+    overlay.fill(constants['BLACK'])
+    screen.blit(overlay, (0, 0))
+
+    panel_width = 900
+    panel_height = 450
+    panel_x = (constants['WIDTH'] - panel_width) // 2
+    panel_y = (constants['HEIGHT'] - panel_height) // 2
+
+    render_text("Choose an Upgrade", font, constants['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
+
+    option_rects = []
+    for i, option in enumerate(upgrade_options):
+        x = panel_x + (i % 3) * 300 + 25
+        y = panel_y + (i // 3) * 150
+        rect = pygame.Rect(x, y, 250, 100)
+        pygame.draw.rect(screen, constants['WHITE'], rect, 2)
+        render_text(option, font, constants['WHITE'], x + 10, y + 40)
+        option_rects.append(rect)
+
+    return option_rects
+
+
+def apply_upgrade(index):
+    global player_xp_multiplier  # Make sure this is declared as a global variable
+
+    if index == 0:  # Increase Health
+        player.health *= 1.1
+    elif index == 1:  # Increase Speed
+        player.speed *= 1.1
+    elif index == 2:  # Increase Damage
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.damage *= 1.1
+    elif index == 3:  # Faster Reload
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.reload_time *= 0.9
+    elif index == 4:  # Increase Ammo Capacity
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.max_ammo = int(weapon.max_ammo * 1.2)
+                weapon.ammo = weapon.max_ammo
+    elif index == 5:  # Increase Fire Rate
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.fire_rate *= 0.9
+    elif index == 6:  # Improve Accuracy
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.spread_angle *= 0.9
+    elif index == 7:  # Increase XP Gain
+        player_xp_multiplier *= 100
+    elif index == 8:  # Unlock Random Weapon
+        unlock_random_weapon()
+
+    print(f"Applied upgrade: {upgrade_options[index]}")
 
 def create_weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius=0):
     return Weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
@@ -186,32 +260,32 @@ class WeaponCategory:
         return any(not weapon.locked for weapon in self.weapons)
 #projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
 pistol = WeaponCategory("pistols", [
-    Weapon("Glock(PDW)", 55, 200, 24, 0.080, 15, 1900, 1, locked=False),
+    Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
 ])
     # Rifles
 smg = WeaponCategory("SMG", [
-    Weapon("Skorpian(SMG)", 55, 90, 24, 0.080, 30, 1900, 3, locked=True),
+    Weapon("Skorpian(SMG)", 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
 ])
 
 rifles = WeaponCategory("Rifles", [
-    Weapon("SVT-40(RIFLE)", 52, 440, 59, 0.068, 10, 2250, 5, locked=True),
+    Weapon("SVT-40(RIFLE)", 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
 ])
 
 bolt_action = WeaponCategory("Bolt Action", [
-    Weapon("Mosin(BOLT)", 57, 2500, 85, 0.002, 5, 2700, 7, locked=True),
+    Weapon("Mosin(BOLT)", 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
 ])
 
 assault_rifles = WeaponCategory("Assault Rifle", [
-    Weapon("AK-47(AR)", 50, 100, 35, 0.090, 31, 2000, 3, locked=True),
+    Weapon("AK-47(AR)", 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
 ])
 
 lmgs = WeaponCategory("LMG", [
-    Weapon("PKM(LMG)", 50, 170, 30, 0.2, 51, 3000, 5, locked=True),
+    Weapon("PKM(LMG)", 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
 ])
 
 shotguns = WeaponCategory("Shotgun", [
-    Weapon("Mossberg 500(SG)", 50, 1200, 25, 0.6, 5, 2500, 3, locked=True),
-    Weapon("Remington 870(SG)", 48, 1100, 28, 0.55, 6, 2600, 3, locked=True),
+    Weapon("Mossberg 500(SG)", 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
+    Weapon("Remington 870(SG)", 20, 1100, 28, 0.55, 6, 2600, 3, locked=True),
 ])
 launchers = WeaponCategory("Launchers", [
     create_weapon("RPG-7(BLAST)", 20, 5000, 100, 0.1, 1, 5000, 0, locked=True, blast_radius=50),
@@ -357,6 +431,9 @@ class Player(pygame.sprite.Sprite):
 
         angle = math.atan2(mouse_pos[1] - self.rect.centery, mouse_pos[0] - self.rect.centerx)
         self.rotate(angle)
+
+        # Debug print
+        print(f"dx: {self.dx}, dy: {self.dy}")
         
     def rotate(self, angle):
         self.image = pygame.transform.rotate(self.original_image, -math.degrees(angle))
@@ -451,7 +528,7 @@ class Projectile(pygame.sprite.Sprite):
         return self.damage
     
 class ZombieClass:
-    a = {'HEALTH': 33, 'SPEED': 1.0}
+    a = {'HEALTH': 50, 'SPEED': 1.0}
     b = {'HEALTH': 66, 'SPEED': 1.1}
     c = {'HEALTH': 99, 'SPEED': 1.2}
     d = {'HEALTH': 133, 'SPEED': 1.3}
@@ -461,6 +538,7 @@ class ZombieClass:
     h = {'HEALTH': 266, 'SPEED': 1.7}
     i = {'HEALTH': 299, 'SPEED': 1.8}
     j = {'HEALTH': 333, 'SPEED': 1.9}
+    
 
 class Zombie(pygame.sprite.Sprite):
     def __init__(self, x, y, player, zombie_image, zombie_class):
@@ -486,9 +564,11 @@ class Zombie(pygame.sprite.Sprite):
         self.hitbox.center = self.rect.center
         self.grid_size = (constants['VIRTUAL_WIDTH'] // 16, constants['VIRTUAL_HEIGHT'] // 16)
         self.path = []
-        self.path_update_interval = 250
+        self.path_update_interval = 1500
         self.path_update_offset = random.randint(0, self.path_update_interval)
         self.last_path_update = pygame.time.get_ticks() - self.path_update_offset
+        self.show_health_bar = False
+        self.last_damage_time = 0
     
     def get_class_name(self, zombie_class):
         for name, cls in vars(ZombieClass).items():
@@ -506,6 +586,8 @@ class Zombie(pygame.sprite.Sprite):
             self.fade_out()
         elif not self.fading:
             current_time = pygame.time.get_ticks()
+            if self.show_health_bar and current_time - self.last_damage_time > constants['HEALTH_BAR_VISIBLE_DURATION']:
+                self.show_health_bar = False
             if current_time - self.last_path_update > self.path_update_interval:
                 self.update_path()
                 self.last_path_update = current_time
@@ -605,19 +687,22 @@ class Zombie(pygame.sprite.Sprite):
 
     def draw_health_bar(self, camera):
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_damage_time < constants['HEALTH_BAR_VISIBLE_DURATION']:
-            bar_length = 30
-            bar_height = 6
-            fill = (self.health / self.max_health) * bar_length
-            outline_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 10, bar_length, bar_height)
-            fill_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 10, fill, bar_height)
-            pygame.draw.rect(screen, constants['NEON'], camera.apply(fill_rect))
-            pygame.draw.rect(screen, constants['WHITE'], camera.apply(outline_rect), 1)
+        if self.health < self.max_health and not self.killed:
+            time_since_last_damage = current_time - self.last_damage_time
+            if time_since_last_damage < constants['HEALTH_BAR_VISIBLE_DURATION']:
+                bar_length = 30
+                bar_height = 6
+                fill = (self.health / self.max_health) * bar_length
+                outline_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 10, bar_length, bar_height)
+                fill_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 10, fill, bar_height)
+                pygame.draw.rect(screen, constants['NEON'], camera.apply(fill_rect))
+                pygame.draw.rect(screen, constants['WHITE'], camera.apply(outline_rect), 1)
 
     def take_damage(self, amount):
         if not self.killed:
             self.health -= amount
             self.last_damage_time = pygame.time.get_ticks()
+            self.show_health_bar = True
             self.flash()
             
             damage_text = FloatingText(self.rect.centerx, self.rect.top, int(amount), constants['GAMMA'])
@@ -635,7 +720,6 @@ class Zombie(pygame.sprite.Sprite):
             bloodline_xp_gained = self.blood()
         # Remove this line: constants['BLOOD'] += bloodline_xp_gained
             constants['TOTAL_KILLS'] += 1
-            print(f"Zombie killed. Total kills: {constants['TOTAL_KILLS']}")
             energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
             energy_orbs.add(energy_orb)
             total_xp_gained = self.get_score_value() + bloodline_xp_gained
@@ -788,8 +872,17 @@ def manage_waves():
 
     current_wave += 1
     print(f"Starting Wave {current_wave}")
-    zombies_to_spawn = calculate_zombies(current_wave)
-    random.shuffle(zombies_to_spawn)
+    
+    zombie_distribution = calculate_zombies(current_wave)
+    random.shuffle(zombie_distribution)
+    
+    zombies_to_spawn = []
+    for zombie_type, count in zombie_distribution:
+        while count > 0:
+            spawn_count = min(count, constants['MAX_ALIVE_ZOMBIES'])
+            zombies_to_spawn.append((zombie_type, spawn_count))
+            count -= spawn_count
+
     pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
     wave_start_time = pygame.time.get_ticks() + constants['WAVE_DELAY']
 
@@ -817,14 +910,9 @@ def unlock_random_weapon():
         print("All weapons are already unlocked!")
 
 def calculate_zombies(wave):
-    total_zombies = 50
-    max_zombie_types = min(26, wave)
-    zombies_per_type = max(1, total_zombies // max_zombie_types)
-    zombies_to_spawn = [(chr(97 + i), zombies_per_type) for i in range(max_zombie_types)]
-    remaining_zombies = total_zombies - (zombies_per_type * max_zombie_types)
-    for i in range(remaining_zombies):
-        zombies_to_spawn[i] = (zombies_to_spawn[i][0], zombies_to_spawn[i][1] + 1)
-    return zombies_to_spawn
+    base_zombies = 25 * wave
+    zombie_types = min(26, wave)  # Limit to 26 types (a-z)
+    return [(chr(97 + i), base_zombies // zombie_types) for i in range(zombie_types)]
 
 def spawn_zombie(zombie_type):
     spawn_side = random.choice(['top', 'bottom', 'left', 'right'])
@@ -862,6 +950,7 @@ def restart_game():
     player.health = constants['PLAYER_HEALTH']
     player.rect.center = (constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
     all_sprites.empty()
+    energy_orbs.empty()
     projectiles.empty()
     blood_particles.empty()
     zombies.empty()
@@ -882,13 +971,14 @@ def restart_game():
         category.current_index = category.find_first_unlocked_weapon()
 
 def update_player_level_and_xp(xp_gained):
-    global player_level, player_xp
+    global player_level, player_xp, show_upgrade_panel
 
     player_xp += xp_gained
 
     while player_xp >= level_thresholds[player_level + 1]:
         player_level += 1
         player_xp -= level_thresholds[player_level]
+        show_upgrade_panel = True 
 
 def draw_progress_bar(surface, x, y, width, height, progress, color):
     bar_rect = pygame.Rect(x, y, width, height)
@@ -944,7 +1034,7 @@ pygame.draw.circle(CURSOR_IMG, pygame.Color('white'), (20, 20), 2)
 pygame.draw.circle(CURSOR_IMG, pygame.Color('red'), (20, 20), 2) 
 cursor_rect = CURSOR_IMG.get_rect()
 pygame.mouse.set_visible(False)
-
+render_upgrade_panel()
 running = True
 game_state = 'main_menu'
 selected_weapon = 'Glock(PDW)'
@@ -966,7 +1056,8 @@ player_level = 1
 player_xp = 0
 auto_firing = False
 orb_image = pygame.transform.scale(orb_image, (20, 20))
-
+show_upgrade_panel = False
+player_xp_multiplier = 1.0
 def get_adjusted_mouse_pos(camera):
     mouse_pos = pygame.mouse.get_pos()
     return (mouse_pos[0] - camera.rect.x, mouse_pos[1] - camera.rect.y)
@@ -986,7 +1077,33 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 3:  # Right mouse button
                 auto_firing = not auto_firing
-                print(f"Auto-firing mode is now {'enabled' if auto_firing else 'disabled'}")
+                print("Auto-firing mode enabled" if auto_firing else "Auto-firing mode disabled")
+            elif event.button == 1 and show_upgrade_panel:  # Left mouse button for upgrade panel
+                mouse_pos = pygame.mouse.get_pos()
+                
+                panel_width = 1600
+                panel_height = 900
+                panel_x = (1920 - panel_width) // 2
+                panel_y = (1080 - panel_height) // 2
+                
+                option_width = 450
+                option_height = 200
+                options_per_row = 3
+                horizontal_padding = 50
+                vertical_padding = 50
+                
+                for i, option in enumerate(upgrade_options):
+                    row = i // options_per_row
+                    col = i % options_per_row
+                    
+                    x = panel_x + col * (option_width + horizontal_padding) + horizontal_padding
+                    y = panel_y + row * (option_height + vertical_padding) + vertical_padding
+                    
+                    if pygame.Rect(x, y, option_width, option_height).collidepoint(mouse_pos):
+                        apply_upgrade(i)
+                        show_upgrade_panel = False
+                        break
+
         elif event.type == pygame.KEYDOWN:
             if game_state == 'main_menu':
                 if event.key == pygame.K_RETURN:
@@ -1006,8 +1123,9 @@ while running:
             elif game_state == 'running':
                 if event.key == pygame.K_ESCAPE:
                     game_state = 'paused'
-                elif pygame.K_1 <= event.key <= pygame.K_7:
-                    player.switch_weapon_category(event.key - pygame.K_1)
+                elif event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7]:
+                    category_index = event.key - pygame.K_1
+                    player.switch_weapon_category(category_index)
                 elif event.key == pygame.K_r:
                     if not reloading[player.current_weapon.name] and player.current_weapon.ammo < player.current_weapon.max_ammo:
                         reload_start_time[player.current_weapon.name] = current_time
@@ -1025,7 +1143,7 @@ while running:
                 if wave_delay_active:
                     wave_delay_active = False
                 if current_time - last_spawn_time >= constants['SPAWN_INTERVAL']:
-                    if zombies_to_spawn:
+                    if zombies_to_spawn and len(zombies) < constants['MAX_ALIVE_ZOMBIES']:  # Add this check
                         zombie_type, count = random.choice(zombies_to_spawn)
                         spawn_zombie(zombie_type)
                         count -= 1
@@ -1041,11 +1159,18 @@ while running:
     if game_state == 'running':
         player.update(keys, adjusted_mouse_pos)
         camera.update(player)
+        
+        if show_upgrade_panel:
+            render_upgrade_panel()
+            screen.blit(CURSOR_IMG, cursor_rect)
+            pygame.display.flip()
+            continue
 
+        # Update game objects and check collisions
         for orb in energy_orbs:
             if pygame.sprite.collide_rect(player, orb):
                 orb.kill()
-                update_player_level_and_xp(10)
+                update_player_level_and_xp(1)
 
         if chest and pygame.sprite.collide_rect(player, chest):
             chest.open()
@@ -1078,7 +1203,7 @@ while running:
                         )
 
                     if 'SG' in player.current_weapon.name:  
-                        for _ in range(5):
+                        for _ in range(10):
                             pellet_angle = angle + random.uniform(-player.current_weapon.spread_angle, player.current_weapon.spread_angle)
                             projectiles.add(create_projectile(pellet_angle))
                         pygame.mixer.Sound.play(fire_sound_mossberg)
@@ -1108,6 +1233,8 @@ while running:
                     reload_start_time[player.current_weapon.name] = current_time
                     reloading[player.current_weapon.name] = True
                     pygame.mixer.Sound.play(reload_sound)
+
+        # Update and draw game objects
         energy_orbs.update()
         muzzle_flashes.update()
         player.update(keys, adjusted_mouse_pos)
@@ -1139,6 +1266,8 @@ while running:
             
                     if projectile.penetration <= 0:
                         projectile.kill()
+
+        # Draw background and other visual elements
         bg_x = -camera.rect.x
         bg_y = -camera.rect.y
         scaled_background = pygame.transform.scale(background_image, (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']))
@@ -1148,6 +1277,7 @@ while running:
         cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
         screen.blit(cropped_image, (0, 0))
         screen.blit(CURSOR_IMG, cursor_rect)
+
         progress = player_xp / level_thresholds[player_level + 1]
         draw_progress_bar(screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, constants['RED'])
 
@@ -1175,7 +1305,7 @@ while running:
         for zombie in zombies:
             zombie.draw_health_bar(camera)
             if pygame.sprite.collide_mask(player, zombie):
-                player.take_damage(10)
+                player.take_damage(25)
                 if player.health <= 0:
                     start_time = pygame.time.get_ticks()
                     restart_game()
@@ -1188,7 +1318,7 @@ while running:
         render_text(f"FPS: {int(clock.get_fps())}", fps_font, constants['GAMMA'], constants['WIDTH'] - 140, 10)
         render_text(f"Total Kills: {constants['TOTAL_KILLS']} (Remaining: {len(zombies)})", font, constants['WHITE'], 10, 10)
         
-        version_text = "Alpha 1.01"
+        version_text = "Alpha 1.02"
         version_surface = version_font.render(version_text, True, constants['WHITE'])
         version_rect = version_surface.get_rect()
         version_rect.bottomright = (constants['WIDTH'] - 10, constants['HEIGHT'] - 40)
@@ -1217,7 +1347,6 @@ while running:
             reload_text_surface = font1.render(reload_text, True, constants['YELLOW'])
             reload_text_pos = (player_pos[0], player_pos[1] - -120)  
             screen.blit(reload_text_surface, reload_text_pos)
-
     elif game_state == 'main_menu':
         screen.fill(constants['BLACK'])
         render_text("The Black Box Project", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 - 150)
@@ -1225,16 +1354,13 @@ while running:
         render_text("Press H for How to Play", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2)
         render_text("Press C for Credits", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 + 50)
         render_text("Press ESC to Quit", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 + 100)
-
     elif game_state == 'paused':
         screen.fill(constants['BLACK'])
         render_text("Game Paused", font, constants['WHITE'], constants['WIDTH'] // 2 - 150, constants['HEIGHT'] // 2 - 100)
         render_text("Press ENTER to Resume", font, constants['WHITE'], constants['WIDTH'] // 2 - 250, constants['HEIGHT'] // 2)
         render_text("Press ESC to Main Menu", font, constants['WHITE'], constants['WIDTH'] // 2 - 250, constants['HEIGHT'] // 2 + 50)
-
     elif game_state == 'how_to_play':
         render_how_to_play()
-
     elif game_state == 'credits':
         render_credits()
 
