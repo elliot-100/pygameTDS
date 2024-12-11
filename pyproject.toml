@@ -1,0 +1,6 @@
+[project]
+name = "pygameTDS"
+dependencies = [
+  "pygame>=2.6.0",
+]
+requires-python = ">=3.11"
