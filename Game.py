@@ -994,9 +994,10 @@ def draw_progress_bar(surface, x, y, width, height, progress, color):
 
 def render_how_to_play():
     screen.fill(constants['BLACK'])
-    render_text("How to Play", font, constants['WHITE'], constants['WIDTH'] // 2 - 100, 50)
-    render_text("WASD - Move", font, constants['WHITE'], 100, 150)
-    render_text("Left Mouse Button - Shoot", font, constants['WHITE'], 100, 200)
+    render_text("How to Play", font, constants['WHITE'], constants['WIDTH'] // 2 - 100, 25)
+    render_text("WASD - Move", font, constants['WHITE'], 100, 100)
+    render_text("Left Mouse Button - Shoot", font, constants['WHITE'], 100, 150)
+    render_text("Right Mouse Button - Auto-fire" , font, constants['WHITE'], 100, 200)
     render_text("R - Reload", font, constants['WHITE'], 100, 250)
     render_text("1-7 - Switch weapon category", font, constants['WHITE'], 100, 300)
     render_text("Mouse Wheel - Cycle weapons in category", font, constants['WHITE'], 100, 350)
