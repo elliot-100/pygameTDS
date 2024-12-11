@@ -100,109 +100,6 @@ class Chest(pygame.sprite.Sprite):
         self.opened = True
         self.kill()
 
-def manhattan_distance(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-def get_neighbors(pos, grid_size):
-    x, y = pos
-    neighbors = [(x+1, y), (x-1, y), (x, y+1), (x, y-1)]
-    return [(nx, ny) for nx, ny in neighbors if 0 <= nx < grid_size[0] and 0 <= ny < grid_size[1]]
-
-screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
-pygame.display.set_caption("TBBP Game")
-
-font1 = pygame.font.Font('ps2.ttf', 15)
-font = pygame.font.Font('ps2.ttf', 15)
-scorefont = pygame.font.Font('ps2.ttf', 20)
-bloodfont = pygame.font.Font('bloody.ttf', 20)
-fps_font = pygame.font.Font('ps2.ttf', 20)
-fps_color = constants['GAMMA']
-clock = pygame.time.Clock()
-
-player_image = pygame.image.load('player.png').convert_alpha()
-player_mask = pygame.mask.from_surface(player_image)
-zombie_images = [pygame.image.load(f'zombie{i}.png').convert_alpha() for i in range(1, 13)]
-background_image = pygame.image.load("zombies.png").convert()
-chest_image = pygame.image.load('chest.png').convert_alpha()
-orb_image = pygame.image.load('orb.png').convert_alpha()
-
-all_zombies_group = pygame.sprite.Group()
-weapon_font = pygame.font.Font('ps2.ttf', 17)
-version_font = pygame.font.Font('ps2.ttf', 15)
-muzzle_flashes = pygame.sprite.Group()
-
-pygame.mixer.init()
-fire_sound_ak47 = pygame.mixer.Sound('bullet.mp3')
-fire_sound_beretta = pygame.mixer.Sound('glock.mp3')
-fire_sound_mossberg = pygame.mixer.Sound('mossberg.mp3')
-hit_sound = pygame.mixer.Sound('splat.mp3')
-reload_sound = pygame.mixer.Sound('reload.mp3')
-fire_sound_mosin = pygame.mixer.Sound('mosin.mp3')
-firing_sound_mosin = pygame.mixer.Sound('mosinshot.mp3')
-fire_sound_PKM = pygame.mixer.Sound('pkm.mp3')
-fire_sound_skorpian = pygame.mixer.Sound('skorpian.mp3')
-
-def render_upgrade_panel():
-    overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']))
-    overlay.fill(constants['BLACK'])
-    screen.blit(overlay, (0, 0))
-
-    panel_width = 900
-    panel_height = 450
-    panel_x = (constants['WIDTH'] - panel_width) // 2
-    panel_y = (constants['HEIGHT'] - panel_height) // 2
-
-    render_text("Choose an Upgrade", font, constants['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
-
-    option_rects = []
-    for i, option in enumerate(upgrade_options):
-        x = panel_x + (i % 3) * 300 + 25
-        y = panel_y + (i // 3) * 150
-        rect = pygame.Rect(x, y, 250, 100)
-        pygame.draw.rect(screen, constants['WHITE'], rect, 2)
-        render_text(option, font, constants['WHITE'], x + 10, y + 40)
-        option_rects.append(rect)
-
-    return option_rects
-
-
-def apply_upgrade(index):
-    global player_xp_multiplier  # Make sure this is declared as a global variable
-
-    if index == 0:  # Increase Health
-        player.health *= 1.1
-    elif index == 1:  # Increase Speed
-        player.speed *= 1.1
-    elif index == 2:  # Increase Damage
-        for category in weapon_categories:
-            for weapon in category.weapons:
-                weapon.damage *= 1.1
-    elif index == 3:  # Faster Reload
-        for category in weapon_categories:
-            for weapon in category.weapons:
-                weapon.reload_time *= 0.9
-    elif index == 4:  # Increase Ammo Capacity
-        for category in weapon_categories:
-            for weapon in category.weapons:
-                weapon.max_ammo = int(weapon.max_ammo * 1.2)
-                weapon.ammo = weapon.max_ammo
-    elif index == 5:  # Increase Fire Rate
-        for category in weapon_categories:
-            for weapon in category.weapons:
-                weapon.fire_rate *= 0.9
-    elif index == 6:  # Improve Accuracy
-        for category in weapon_categories:
-            for weapon in category.weapons:
-                weapon.spread_angle *= 0.9
-    elif index == 7:  # Increase XP Gain
-        player_xp_multiplier *= 100
-    elif index == 8:  # Unlock Random Weapon
-        unlock_random_weapon()
-
-    print(f"Applied upgrade: {upgrade_options[index]}")
-
-def create_weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius=0):
-    return Weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
 
 class Weapon:
     def __init__(self, name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked,  blast_radius=0):
@@ -258,30 +155,6 @@ class WeaponCategory:
                 return
     def has_unlocked_weapon(self):
         return any(not weapon.locked for weapon in self.weapons)
-#projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
-pistol = WeaponCategory("pistols", [
-    Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
-])
-    # Rifles
-smg = WeaponCategory("SMG", [
-    Weapon("Skorpian(SMG)", 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
-])
-
-rifles = WeaponCategory("Rifles", [
-    Weapon("SVT-40(RIFLE)", 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
-])
-
-bolt_action = WeaponCategory("Bolt Action", [
-    Weapon("Mosin(BOLT)", 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
-])
-
-assault_rifles = WeaponCategory("Assault Rifle", [
-    Weapon("AK-47(AR)", 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
-])
-
-lmgs = WeaponCategory("LMG", [
-    Weapon("PKM(LMG)", 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
-])
 
 shotguns = WeaponCategory("Shotgun", [
     Weapon("Mossberg 500(SG)", 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
@@ -315,12 +188,7 @@ class Camera:
         y = max(-(constants['VIRTUAL_HEIGHT'] - constants['HEIGHT']), y) 
 
         self.rect.topleft = (x, y)
-camera = Camera(constants['WIDTH'], constants['HEIGHT'])
 
-def display_damage_text(damage, position, color):
-    damage_text = font.render(f"-{int(damage)}", True, color)
-    damage_rect = damage_text.get_rect(center=position)
-    screen.blit(damage_text, damage_rect)
 
 class MuzzleFlash(pygame.sprite.Sprite):
     def __init__(self, pos, angle):
@@ -469,10 +337,7 @@ class Player(pygame.sprite.Sprite):
             self.shake_duration -= 1
         else:
             self.shake_offset = (0, 0)
-            
-def line_collision(start, end, zombie):
-    return zombie.hitbox.clipline(start, end)
-    
+
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, angle, speed, penetration, damage, blast_radius=0):
         super().__init__()
@@ -820,9 +685,6 @@ class SmallCircle(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.spawn_time > constants['SMALL_CIRCLE_LIFETIME']:
             self.kill()
 
-def render_text(text, font, color, x, y):
-    text_surface = font.render(text, True, color)
-    screen.blit(text_surface, (x, y))
 
 class FloatingText(pygame.sprite.Sprite):
     def __init__(self, x, y, text, color):
@@ -853,6 +715,162 @@ class FloatingText(pygame.sprite.Sprite):
         
         if pygame.time.get_ticks() - self.creation_time > self.duration:
             self.kill()
+
+
+def manhattan_distance(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+def get_neighbors(pos, grid_size):
+    x, y = pos
+    neighbors = [(x+1, y), (x-1, y), (x, y+1), (x, y-1)]
+    return [(nx, ny) for nx, ny in neighbors if 0 <= nx < grid_size[0] and 0 <= ny < grid_size[1]]
+
+screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
+pygame.display.set_caption("TBBP Game")
+
+font1 = pygame.font.Font('ps2.ttf', 15)
+font = pygame.font.Font('ps2.ttf', 15)
+scorefont = pygame.font.Font('ps2.ttf', 20)
+bloodfont = pygame.font.Font('bloody.ttf', 20)
+fps_font = pygame.font.Font('ps2.ttf', 20)
+fps_color = constants['GAMMA']
+clock = pygame.time.Clock()
+
+player_image = pygame.image.load('player.png').convert_alpha()
+player_mask = pygame.mask.from_surface(player_image)
+zombie_images = [pygame.image.load(f'zombie{i}.png').convert_alpha() for i in range(1, 13)]
+background_image = pygame.image.load("zombies.png").convert()
+chest_image = pygame.image.load('chest.png').convert_alpha()
+orb_image = pygame.image.load('orb.png').convert_alpha()
+
+all_zombies_group = pygame.sprite.Group()
+weapon_font = pygame.font.Font('ps2.ttf', 17)
+version_font = pygame.font.Font('ps2.ttf', 15)
+muzzle_flashes = pygame.sprite.Group()
+
+pygame.mixer.init()
+fire_sound_ak47 = pygame.mixer.Sound('bullet.mp3')
+fire_sound_beretta = pygame.mixer.Sound('glock.mp3')
+fire_sound_mossberg = pygame.mixer.Sound('mossberg.mp3')
+hit_sound = pygame.mixer.Sound('splat.mp3')
+reload_sound = pygame.mixer.Sound('reload.mp3')
+fire_sound_mosin = pygame.mixer.Sound('mosin.mp3')
+firing_sound_mosin = pygame.mixer.Sound('mosinshot.mp3')
+fire_sound_PKM = pygame.mixer.Sound('pkm.mp3')
+fire_sound_skorpian = pygame.mixer.Sound('skorpian.mp3')
+
+def render_upgrade_panel():
+    overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']))
+    overlay.fill(constants['BLACK'])
+    screen.blit(overlay, (0, 0))
+
+    panel_width = 900
+    panel_height = 450
+    panel_x = (constants['WIDTH'] - panel_width) // 2
+    panel_y = (constants['HEIGHT'] - panel_height) // 2
+
+    render_text("Choose an Upgrade", font, constants['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
+
+    option_rects = []
+    for i, option in enumerate(upgrade_options):
+        x = panel_x + (i % 3) * 300 + 25
+        y = panel_y + (i // 3) * 150
+        rect = pygame.Rect(x, y, 250, 100)
+        pygame.draw.rect(screen, constants['WHITE'], rect, 2)
+        render_text(option, font, constants['WHITE'], x + 10, y + 40)
+        option_rects.append(rect)
+
+    return option_rects
+
+
+def apply_upgrade(index):
+    global player_xp_multiplier  # Make sure this is declared as a global variable
+
+    if index == 0:  # Increase Health
+        player.health *= 1.1
+    elif index == 1:  # Increase Speed
+        player.speed *= 1.1
+    elif index == 2:  # Increase Damage
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.damage *= 1.1
+    elif index == 3:  # Faster Reload
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.reload_time *= 0.9
+    elif index == 4:  # Increase Ammo Capacity
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.max_ammo = int(weapon.max_ammo * 1.2)
+                weapon.ammo = weapon.max_ammo
+    elif index == 5:  # Increase Fire Rate
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.fire_rate *= 0.9
+    elif index == 6:  # Improve Accuracy
+        for category in weapon_categories:
+            for weapon in category.weapons:
+                weapon.spread_angle *= 0.9
+    elif index == 7:  # Increase XP Gain
+        player_xp_multiplier *= 100
+    elif index == 8:  # Unlock Random Weapon
+        unlock_random_weapon()
+
+    print(f"Applied upgrade: {upgrade_options[index]}")
+
+def create_weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius=0):
+    return Weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
+
+#projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
+pistol = WeaponCategory("pistols", [
+    Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
+])
+    # Rifles
+smg = WeaponCategory("SMG", [
+    Weapon("Skorpian(SMG)", 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
+])
+
+rifles = WeaponCategory("Rifles", [
+    Weapon("SVT-40(RIFLE)", 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
+])
+
+bolt_action = WeaponCategory("Bolt Action", [
+    Weapon("Mosin(BOLT)", 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
+])
+
+assault_rifles = WeaponCategory("Assault Rifle", [
+    Weapon("AK-47(AR)", 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
+])
+
+lmgs = WeaponCategory("LMG", [
+    Weapon("PKM(LMG)", 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
+])
+
+shotguns = WeaponCategory("Shotgun", [
+    Weapon("Mossberg 500(SG)", 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
+    Weapon("Remington 870(SG)", 20, 1100, 28, 0.55, 6, 2600, 3, locked=True),
+])
+launchers = WeaponCategory("Launchers", [
+    create_weapon("RPG-7(BLAST)", 20, 5000, 100, 0.1, 1, 5000, 0, locked=True, blast_radius=50),
+])
+
+
+weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
+
+camera = Camera(constants['WIDTH'], constants['HEIGHT'])
+
+def display_damage_text(damage, position, color):
+    damage_text = font.render(f"-{int(damage)}", True, color)
+    damage_rect = damage_text.get_rect(center=position)
+    screen.blit(damage_text, damage_rect)
+
+def line_collision(start, end, zombie):
+    return zombie.hitbox.clipline(start, end)
+    
+def render_text(text, font, color, x, y):
+    text_surface = font.render(text, True, color)
+    screen.blit(text_surface, (x, y))
+
 
 blood_particles = pygame.sprite.Group()
 small_circles = pygame.sprite.Group()
