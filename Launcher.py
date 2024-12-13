@@ -445,7 +445,7 @@ class ZombieClass:
     h = {'HEALTH': 266, 'SPEED': 1.7}
     i = {'HEALTH': 299, 'SPEED': 1.8}
     j = {'HEALTH': 333, 'SPEED': 1.9}
-    
+    k = {'HEALTH': 444, 'SPEED': 2.0}
 
 class Zombie(pygame.sprite.Sprite):
     def __init__(self, x, y, player, zombie_image, zombie_class):
@@ -651,13 +651,13 @@ class Zombie(pygame.sprite.Sprite):
 
     def get_score_value(self):
         score_table = {
-            'a': 5, 'b': 10, 'c': 15, 'd': 20, 'e': 25, 'f': 30, 'g': 35, 'h': 40, 'i': 45, 'j': 50
+            'a': 5, 'b': 10, 'c': 15, 'd': 20, 'e': 25, 'f': 30, 'g': 35, 'h': 40, 'i': 45, 'j': 50, 'k': 55
         }
         return score_table.get(self.zombie_class_name, 5)
 
     def blood(self):
         bloodline_table = {
-            'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8, 'i': 9, 'j': 10
+            'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8, 'i': 9, 'j': 10, 'k': 11
         }
         return bloodline_table.get(self.zombie_class_name, 1)
 
@@ -780,7 +780,7 @@ clock = pygame.time.Clock()
 
 player_image = pygame.image.load('player.png').convert_alpha()
 player_mask = pygame.mask.from_surface(player_image)
-zombie_images = [pygame.image.load(f'zombie{i}.png').convert_alpha() for i in range(1, 10)]
+zombie_images = [pygame.image.load(f'zombie{i}.png').convert_alpha() for i in range(1, 12)]
 background_image = pygame.image.load("zombies.png").convert()
 chest_image = pygame.image.load('chest.png').convert_alpha()
 orb_image = pygame.image.load('orb.png').convert_alpha()
@@ -995,6 +995,7 @@ def spawn_zombie(zombie_type):
         'h': (ZombieClass.h, zombie_images[7]),
         'i': (ZombieClass.i, zombie_images[8]),
         'j': (ZombieClass.j, zombie_images[9]),
+        'k': (ZombieClass.k, zombie_images[10]),
     }
     zombie_class, zombie_image = zombie_classes.get(zombie_type, (ZombieClass.a, zombie_images[0]))
     zombie = Zombie(x, y, player, zombie_image, zombie_class)
@@ -1430,3 +1431,5 @@ while running:
 
 pygame.quit()
 sys.exit()
+
+
