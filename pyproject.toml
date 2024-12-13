@@ -1,21 +1,33 @@
 [project]
 name = "pygameTDS"
 version = "1.01.alpha"
+requires-python = ">=3.11"
 dependencies = [
   "pygame>=2.6.1",
 ]
-requires-python = ">=3.11"
-
-[tool.ruff]
-# Allow lines to be as long as 120.
-line-length = 120
-
-[tool.ruff.format]
-# Prefer single quotes over double quotes.
-quote-style = "single"
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.0.1",
     "ruff>=0.8.3",
 ]
+
+[tool.ruff]
+# Allow lines to be as long as 120.
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "W",  # pycodestyle warnings
+]
+ignore = []
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+# Prefer single quotes over double quotes.
+quote-style = "single"
