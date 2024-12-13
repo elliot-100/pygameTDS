@@ -8,7 +8,7 @@ import pygame
 
 pygame.init()
 
-level_thresholds = {
+LEVEL_THRESHOLDS = {
     1: 0,
     2: 90,
     3: 180,
@@ -41,10 +41,11 @@ level_thresholds = {
     30: 12425,
 }
 
-
-constants = {
+CONSTANTS = {
     'WIDTH': 1920,
     'HEIGHT': 1080,
+    'VIRTUAL_WIDTH': 2020,
+    'VIRTUAL_HEIGHT': 1180,
     'WHITE': (255, 255, 255),
     'RED': (255, 0, 0),
     'BLACK': (0, 0, 0),
@@ -52,41 +53,30 @@ constants = {
     'NEON': (57, 255, 20),
     'YELLOW': (255, 255, 0),
     'GAMMA': (74, 254, 2),
-    'BLUE': (0, 0, 255),
-    'DARK_RED': (158, 3, 3),
-    'ZOMBIE_RADIUS': 0.1,
+    'PENETRATION_COLORS': [
+        (255, 0, 0),
+        (255, 128, 0),
+        (255, 255, 0),
+        (0, 255, 0),
+    ],
     'PLAYER_SPEED': 0.7,
+    'PLAYER_HEALTH': 7500,
     'SPAWN_INTERVAL': 450,
     'SMALL_CIRCLE_LIFETIME': 9999,
     'FPS': 60,
     'ZOMBIE_FADE_DURATION': 150,
     'MAX_ALIVE_ZOMBIES': 100,
     'HEALTH_BAR_VISIBLE_DURATION': 120,
+    'ZOMBIE_AVOIDANCE_RADIUS': 5,
+    'WAVE_DELAY': 10000,
     'BLOOD_SPRAY_PARTICLES': 5,
     'BLOOD_SPRAY_LIFETIME': 100000,
-    'PLAYER_HEALTH': 7500,
-    'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
     'SCORE': 0,
     'BLOOD': 0,
     'TOTAL_KILLS': 0,
-    'ZOMBIE_AVOIDANCE_RADIUS': 5,
-    'WAVE_DELAY': 10000,
-    'VIRTUAL_WIDTH': 2020,
-    'VIRTUAL_HEIGHT': 1180,
 }
-
-constants.update(
-    {
-        'PENETRATION_COLORS': [
-            (255, 0, 0),
-            (255, 128, 0),
-            (255, 255, 0),
-            (0, 255, 0),
-        ]
-    }
-)
-player_xp_multiplier = 1.0
-upgrade_options = [
+PLAYER_XP_MULTIPLIER = 1.0
+UPGRADE_OPTIONS = [
     'HP +20%',
     'Bullet SPD 10%',
     'Bullet DMG 5%',
@@ -206,13 +196,13 @@ class Camera:
         return entity.rect.move(self.rect.topleft)
 
     def update(self, target):
-        x = -target.rect.centerx + int(constants['WIDTH'] / 2)
-        y = -target.rect.centery + int(constants['HEIGHT'] / 2)
+        x = -target.rect.centerx + int(CONSTANTS['WIDTH'] / 2)
+        y = -target.rect.centery + int(CONSTANTS['HEIGHT'] / 2)
 
         x = min(0, x)
         y = min(0, y)
-        x = max(-(constants['VIRTUAL_WIDTH'] - constants['WIDTH']), x)
-        y = max(-(constants['VIRTUAL_HEIGHT'] - constants['HEIGHT']), y)
+        x = max(-(CONSTANTS['VIRTUAL_WIDTH'] - CONSTANTS['WIDTH']), x)
+        y = max(-(CONSTANTS['VIRTUAL_HEIGHT'] - CONSTANTS['HEIGHT']), y)
 
         self.rect.topleft = (x, y)
 
@@ -266,8 +256,8 @@ class Player(pygame.sprite.Sprite):
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = player_mask
-        self.speed = constants['PLAYER_SPEED']
-        self.health = constants['PLAYER_HEALTH']
+        self.speed = CONSTANTS['PLAYER_SPEED']
+        self.health = CONSTANTS['PLAYER_HEALTH']
         self.shake_offset = (1, 1)
         self.shake_duration = 0.0
         self.shake_intensity = 0
@@ -325,9 +315,9 @@ class Player(pygame.sprite.Sprite):
         new_x = self.rect.x + self.dx
         new_y = self.rect.y + self.dy
 
-        if 0 <= new_x < constants['VIRTUAL_WIDTH'] - self.rect.width:
+        if 0 <= new_x < CONSTANTS['VIRTUAL_WIDTH'] - self.rect.width:
             self.rect.x = new_x
-        if 0 <= new_y < constants['VIRTUAL_HEIGHT'] - self.rect.height:
+        if 0 <= new_y < CONSTANTS['VIRTUAL_HEIGHT'] - self.rect.height:
             self.rect.y = new_y
 
         angle = math.atan2(mouse_pos[1] - self.rect.centery, mouse_pos[0] - self.rect.centerx)
@@ -344,15 +334,15 @@ class Player(pygame.sprite.Sprite):
     def draw_health_bar(self, camera):
         bar_length = 30
         bar_height = 6
-        fill = (self.health / constants['PLAYER_HEALTH']) * bar_length
+        fill = (self.health / CONSTANTS['PLAYER_HEALTH']) * bar_length
         outline_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 20, bar_length, bar_height)
         fill_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 20, fill, bar_height)
 
         camera_outline_rect = camera.apply(pygame.Rect(outline_rect))
         camera_fill_rect = camera.apply(pygame.Rect(fill_rect))
 
-        pygame.draw.rect(screen, constants['NEON'], camera_fill_rect)
-        pygame.draw.rect(screen, constants['WHITE'], camera_outline_rect, 1)
+        pygame.draw.rect(screen, CONSTANTS['NEON'], camera_fill_rect)
+        pygame.draw.rect(screen, CONSTANTS['WHITE'], camera_outline_rect, 1)
 
     def take_damage(self, amount):
         self.health -= amount
@@ -378,7 +368,7 @@ class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, angle, speed, penetration, damage, blast_radius=0):
         super().__init__()
         self.image = pygame.Surface((3, 3))
-        self.image.fill(constants['YELLOW'])
+        self.image.fill(CONSTANTS['YELLOW'])
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = speed
         self.dx = self.speed * math.cos(angle)
@@ -393,7 +383,7 @@ class Projectile(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += self.dx
         self.rect.y += self.dy
-        if not pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']).colliderect(self.rect):
+        if not pygame.Rect(0, 0, CONSTANTS['VIRTUAL_WIDTH'], CONSTANTS['VIRTUAL_HEIGHT']).colliderect(self.rect):
             self.kill()
         else:
             for zombie in zombies:
@@ -408,7 +398,7 @@ class Projectile(pygame.sprite.Sprite):
                     damage_text = FloatingText(zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color)
                     floating_texts.add(damage_text)
 
-                    for _ in range(constants['BLOOD_SPRAY_PARTICLES']):
+                    for _ in range(CONSTANTS['BLOOD_SPRAY_PARTICLES']):
                         angle = random.uniform(0, 2 * math.pi)
                         speed = random.uniform(0.7, 1.5)
                         blood_particle = BloodParticle(zombie.rect.center, angle, speed)
@@ -416,8 +406,8 @@ class Projectile(pygame.sprite.Sprite):
 
     def get_penetration_color(self):
         hit_count = len(self.zombies_hit)
-        color_index = min(hit_count, len(constants['PENETRATION_COLORS']) - 1)
-        return constants['PENETRATION_COLORS'][color_index]
+        color_index = min(hit_count, len(CONSTANTS['PENETRATION_COLORS']) - 1)
+        return CONSTANTS['PENETRATION_COLORS'][color_index]
 
     def reduce_penetration(self, zombie):
         if zombie not in self.zombies_hit:
@@ -467,7 +457,7 @@ class Zombie(pygame.sprite.Sprite):
         hitbox_size = int(self.rect.width * 0.5)
         self.hitbox = pygame.Rect(0, 0, hitbox_size, hitbox_size)
         self.hitbox.center = self.rect.center
-        self.grid_size = (constants['VIRTUAL_WIDTH'] // 16, constants['VIRTUAL_HEIGHT'] // 16)
+        self.grid_size = (CONSTANTS['VIRTUAL_WIDTH'] // 16, CONSTANTS['VIRTUAL_HEIGHT'] // 16)
         self.path = []
         self.path_update_interval = 1500
         self.path_update_offset = random.randint(0, self.path_update_interval)
@@ -482,7 +472,7 @@ class Zombie(pygame.sprite.Sprite):
         return 'a'
 
     def get_new_roaming_target(self):
-        return random.randint(0, constants['VIRTUAL_WIDTH']), random.randint(0, constants['VIRTUAL_HEIGHT'])
+        return random.randint(0, CONSTANTS['VIRTUAL_WIDTH']), random.randint(0, CONSTANTS['VIRTUAL_HEIGHT'])
 
     def update(self):
         self.last_damage_time = pygame.time.get_ticks()
@@ -491,7 +481,7 @@ class Zombie(pygame.sprite.Sprite):
             self.fade_out()
         elif not self.fading:
             current_time = pygame.time.get_ticks()
-            if self.show_health_bar and current_time - self.last_damage_time > constants['HEALTH_BAR_VISIBLE_DURATION']:
+            if self.show_health_bar and current_time - self.last_damage_time > CONSTANTS['HEALTH_BAR_VISIBLE_DURATION']:
                 self.show_health_bar = False
             if current_time - self.last_path_update > self.path_update_interval:
                 self.update_path()
@@ -576,7 +566,7 @@ class Zombie(pygame.sprite.Sprite):
         for other_zombie in zombies:
             if other_zombie != self:
                 distance = pygame.math.Vector2(self.rect.center) - pygame.math.Vector2(other_zombie.rect.center)
-                if 0 < distance.length() < constants['ZOMBIE_AVOIDANCE_RADIUS']:
+                if 0 < distance.length() < CONSTANTS['ZOMBIE_AVOIDANCE_RADIUS']:
                     avoidance_force += distance.normalize()
 
         if avoidance_force.length() > 0:
@@ -585,7 +575,7 @@ class Zombie(pygame.sprite.Sprite):
             self.rect.y += avoidance_force.y
 
     def check_boundaries(self):
-        self.rect.clamp_ip(pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']))
+        self.rect.clamp_ip(pygame.Rect(0, 0, CONSTANTS['VIRTUAL_WIDTH'], CONSTANTS['VIRTUAL_HEIGHT']))
 
     def rotate_to_target(self):
         if self.path:
@@ -604,14 +594,14 @@ class Zombie(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if self.health < self.max_health and not self.killed:
             time_since_last_damage = current_time - self.last_damage_time
-            if time_since_last_damage < constants['HEALTH_BAR_VISIBLE_DURATION']:
+            if time_since_last_damage < CONSTANTS['HEALTH_BAR_VISIBLE_DURATION']:
                 bar_length = 30
                 bar_height = 6
                 fill = (self.health / self.max_health) * bar_length
                 outline_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 10, bar_length, bar_height)
                 fill_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 10, fill, bar_height)
-                pygame.draw.rect(screen, constants['NEON'], camera.apply(fill_rect))
-                pygame.draw.rect(screen, constants['WHITE'], camera.apply(outline_rect), 1)
+                pygame.draw.rect(screen, CONSTANTS['NEON'], camera.apply(fill_rect))
+                pygame.draw.rect(screen, CONSTANTS['WHITE'], camera.apply(outline_rect), 1)
 
     def take_damage(self, amount):
         if not self.killed:
@@ -620,7 +610,7 @@ class Zombie(pygame.sprite.Sprite):
             self.show_health_bar = True
             self.flash()
 
-            damage_text = FloatingText(self.rect.centerx, self.rect.top, int(amount), constants['GAMMA'])
+            damage_text = FloatingText(self.rect.centerx, self.rect.top, int(amount), CONSTANTS['GAMMA'])
             floating_texts.add(damage_text)
 
             if self.health <= 0:
@@ -631,9 +621,9 @@ class Zombie(pygame.sprite.Sprite):
         if not self.fading:
             self.fading = True
             self.fade_start_time = pygame.time.get_ticks()
-            constants['SCORE'] += self.get_score_value()
+            CONSTANTS['SCORE'] += self.get_score_value()
             bloodline_xp_gained = self.blood()
-            constants['TOTAL_KILLS'] += 1
+            CONSTANTS['TOTAL_KILLS'] += 1
             energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
             energy_orbs.add(energy_orb)
             total_xp_gained = self.get_score_value() + bloodline_xp_gained
@@ -648,7 +638,7 @@ class Zombie(pygame.sprite.Sprite):
         return bloodline_table.get(self.zombie_class_name, 1)
 
     def flash(self):
-        self.image.fill(constants['WHITE'], special_flags=pygame.BLEND_ADD)
+        self.image.fill(CONSTANTS['WHITE'], special_flags=pygame.BLEND_ADD)
         self.flash_active = True
         self.flash_start_time = pygame.time.get_ticks()
 
@@ -662,8 +652,8 @@ class Zombie(pygame.sprite.Sprite):
     def fade_out(self):
         current_time = pygame.time.get_ticks()
         elapsed_time = current_time - self.fade_start_time
-        if elapsed_time < constants['ZOMBIE_FADE_DURATION']:
-            alpha = 255 - (elapsed_time / constants['ZOMBIE_FADE_DURATION']) * 255
+        if elapsed_time < CONSTANTS['ZOMBIE_FADE_DURATION']:
+            alpha = 255 - (elapsed_time / CONSTANTS['ZOMBIE_FADE_DURATION']) * 255
             self.image.set_alpha(alpha)
         else:
             self.kill()
@@ -674,13 +664,13 @@ class BloodParticle(pygame.sprite.Sprite):
     def __init__(self, pos, angle, speed):
         super().__init__()
         self.image = pygame.Surface((random.randint(1, 5), random.randint(1, 5)))
-        self.image.fill(constants['RED'])
+        self.image.fill(CONSTANTS['RED'])
         self.rect = self.image.get_rect(center=pos)
         self.dx = speed * math.cos(angle) * -1
         self.dy = speed * math.sin(angle) * -1
         self.gravity = 0.0
         self.spawn_time = pygame.time.get_ticks()
-        self.lifetime = constants['BLOOD_SPRAY_LIFETIME']
+        self.lifetime = CONSTANTS['BLOOD_SPRAY_LIFETIME']
         self.alpha = 255
 
     def update(self):
@@ -702,7 +692,7 @@ class SmallCircle(pygame.sprite.Sprite):
     def __init__(self, pos, angle, speed):
         super().__init__()
         self.image = pygame.Surface((0.1, 2.0))
-        self.image.fill(constants['RED'])
+        self.image.fill(CONSTANTS['RED'])
         self.rect = self.image.get_rect(center=pos)
         self.speed = speed
         self.dx = self.speed * math.cos(angle)
@@ -712,7 +702,7 @@ class SmallCircle(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += self.dx
         self.rect.y += self.dy
-        if pygame.time.get_ticks() - self.spawn_time > constants['SMALL_CIRCLE_LIFETIME']:
+        if pygame.time.get_ticks() - self.spawn_time > CONSTANTS['SMALL_CIRCLE_LIFETIME']:
             self.kill()
 
 
@@ -722,7 +712,7 @@ class FloatingText(pygame.sprite.Sprite):
         self.font = pygame.font.Font('bloody.ttf', 20)
         self.text = str(text)
         self.color = color
-        self.outline_color = constants['BLACK']
+        self.outline_color = CONSTANTS['BLACK']
         self.outline_width = 0.1
         self.create_image()
         self.rect = self.image.get_rect(center=(x, y))
@@ -759,31 +749,31 @@ def get_neighbors(pos, grid_size):
 
 
 def render_upgrade_panel():
-    overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']))
-    overlay.fill(constants['BLACK'])
+    overlay = pygame.Surface((CONSTANTS['WIDTH'], CONSTANTS['HEIGHT']))
+    overlay.fill(CONSTANTS['BLACK'])
     screen.blit(overlay, (0, 0))
 
     panel_width = 900
     panel_height = 450
-    panel_x = (constants['WIDTH'] - panel_width) // 2
-    panel_y = (constants['HEIGHT'] - panel_height) // 2
+    panel_x = (CONSTANTS['WIDTH'] - panel_width) // 2
+    panel_y = (CONSTANTS['HEIGHT'] - panel_height) // 2
 
-    render_text('Choose an Upgrade', font, constants['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
+    render_text('Choose an Upgrade', font, CONSTANTS['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
 
     option_rects = []
-    for i, option in enumerate(upgrade_options):
+    for i, option in enumerate(UPGRADE_OPTIONS):
         x = panel_x + (i % 3) * 300 + 25
         y = panel_y + (i // 3) * 150
         rect = pygame.Rect(x, y, 250, 100)
-        pygame.draw.rect(screen, constants['WHITE'], rect, 2)
-        render_text(option, font, constants['WHITE'], x + 10, y + 40)
+        pygame.draw.rect(screen, CONSTANTS['WHITE'], rect, 2)
+        render_text(option, font, CONSTANTS['WHITE'], x + 10, y + 40)
         option_rects.append(rect)
 
     return option_rects
 
 
 def apply_upgrade(index):
-    global player_xp_multiplier  # Make sure this is declared as a global variable
+    global PLAYER_XP_MULTIPLIER  # Make sure this is declared as a global variable
 
     if index == 0:  # Increase Health
         player.health *= 1.1
@@ -811,11 +801,11 @@ def apply_upgrade(index):
             for weapon in category.weapons:
                 weapon.spread_angle *= 0.9
     elif index == 7:  # Increase XP Gain
-        player_xp_multiplier *= 100
+        PLAYER_XP_MULTIPLIER *= 100
     elif index == 8:  # Unlock Random Weapon
         unlock_random_weapon()
 
-    print(f'Applied upgrade: {upgrade_options[index]}')
+    print(f'Applied upgrade: {UPGRADE_OPTIONS[index]}')
 
 
 def create_weapon(
@@ -853,15 +843,15 @@ def manage_waves():
     zombies_to_spawn = []
     for zombie_type, count in zombie_distribution:
         while count > 0:
-            spawn_count = min(count, constants['MAX_ALIVE_ZOMBIES'])
+            spawn_count = min(count, CONSTANTS['MAX_ALIVE_ZOMBIES'])
             zombies_to_spawn.append((zombie_type, spawn_count))
             count -= spawn_count
 
-    pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
-    wave_start_time = pygame.time.get_ticks() + constants['WAVE_DELAY']
+    pygame.time.set_timer(SPAWN_ZOMBIE, CONSTANTS['SPAWN_INTERVAL'])
+    wave_start_time = pygame.time.get_ticks() + CONSTANTS['WAVE_DELAY']
 
     if current_wave > 1:
-        chest = Chest(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+        chest = Chest(CONSTANTS['VIRTUAL_WIDTH'] // 2, CONSTANTS['VIRTUAL_HEIGHT'] // 2)
         all_sprites.add(chest)
     else:
         chest = None
@@ -894,13 +884,13 @@ def calculate_zombies(wave):
 def spawn_zombie(zombie_type):
     spawn_side = random.choice(['top', 'bottom', 'left', 'right'])
     if spawn_side == 'top':
-        x, y = random.randint(50, constants['VIRTUAL_WIDTH']), 50
+        x, y = random.randint(50, CONSTANTS['VIRTUAL_WIDTH']), 50
     elif spawn_side == 'bottom':
-        x, y = random.randint(50, constants['VIRTUAL_WIDTH']), constants['VIRTUAL_HEIGHT']
+        x, y = random.randint(50, CONSTANTS['VIRTUAL_WIDTH']), CONSTANTS['VIRTUAL_HEIGHT']
     elif spawn_side == 'left':
-        x, y = 0, random.randint(50, constants['VIRTUAL_HEIGHT'])
+        x, y = 0, random.randint(50, CONSTANTS['VIRTUAL_HEIGHT'])
     else:
-        x, y = constants['VIRTUAL_WIDTH'], random.randint(50, constants['VIRTUAL_HEIGHT'])
+        x, y = CONSTANTS['VIRTUAL_WIDTH'], random.randint(50, CONSTANTS['VIRTUAL_HEIGHT'])
     zombie_classes = {
         'a': (ZombieClass.a, zombie_images[0]),
         'b': (ZombieClass.b, zombie_images[1]),
@@ -931,12 +921,12 @@ def restart_game():
         current_wave, \
         player_level, \
         player_xp
-    constants['SCORE'] = 0
-    constants['BLOOD'] = 0
-    constants['TOTAL_KILLS'] = 0
+    CONSTANTS['SCORE'] = 0
+    CONSTANTS['BLOOD'] = 0
+    CONSTANTS['TOTAL_KILLS'] = 0
     current_wave = 0
-    player.health = constants['PLAYER_HEALTH']
-    player.rect.center = (constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+    player.health = CONSTANTS['PLAYER_HEALTH']
+    player.rect.center = (CONSTANTS['VIRTUAL_WIDTH'] // 2, CONSTANTS['VIRTUAL_HEIGHT'] // 2)
     all_sprites.empty()
     energy_orbs.empty()
     projectiles.empty()
@@ -964,58 +954,58 @@ def update_player_level_and_xp(xp_gained):
 
     player_xp += xp_gained
 
-    while player_xp >= level_thresholds[player_level + 1]:
+    while player_xp >= LEVEL_THRESHOLDS[player_level + 1]:
         player_level += 1
-        player_xp -= level_thresholds[player_level]
+        player_xp -= LEVEL_THRESHOLDS[player_level]
         show_upgrade_panel = True
 
 
 def draw_progress_bar(surface, x, y, width, height, progress, color):
     bar_rect = pygame.Rect(x, y, width, height)
     fill_rect = pygame.Rect(x, y, int(width * progress), height)
-    pygame.draw.rect(surface, constants['WHITE'], bar_rect, 2)
+    pygame.draw.rect(surface, CONSTANTS['WHITE'], bar_rect, 2)
     pygame.draw.rect(surface, color, fill_rect)
-    level_text = font.render(f'Brain Power: {player_level}', True, constants['WHITE'])
+    level_text = font.render(f'Brain Power: {player_level}', True, CONSTANTS['WHITE'])
     level_text_rect = level_text.get_rect(midleft=(x + 10, y + height // 2))
     surface.blit(level_text, level_text_rect)
-    xp_text = font.render(f'{player_xp}/{level_thresholds[player_level + 1]}', True, constants['WHITE'])
+    xp_text = font.render(f'{player_xp}/{LEVEL_THRESHOLDS[player_level + 1]}', True, CONSTANTS['WHITE'])
     xp_text_rect = xp_text.get_rect(midright=(x + width - 10, y + height // 2))
     surface.blit(xp_text, xp_text_rect)
 
 
 def render_how_to_play():
-    screen.fill(constants['BLACK'])
-    render_text('How to Play', font, constants['WHITE'], constants['WIDTH'] // 2 - 100, 25)
-    render_text('WASD - Move', font, constants['WHITE'], 100, 100)
-    render_text('Left Mouse Button - Shoot', font, constants['WHITE'], 100, 150)
-    render_text('Right Mouse Button - Auto-fire', font, constants['WHITE'], 100, 200)
-    render_text('R - Reload', font, constants['WHITE'], 100, 250)
-    render_text('1-7 - Switch weapon category', font, constants['WHITE'], 100, 300)
-    render_text('Mouse Wheel - Cycle weapons in category', font, constants['WHITE'], 100, 350)
-    render_text('ESC - Pause game', font, constants['WHITE'], 100, 400)
+    screen.fill(CONSTANTS['BLACK'])
+    render_text('How to Play', font, CONSTANTS['WHITE'], CONSTANTS['WIDTH'] // 2 - 100, 25)
+    render_text('WASD - Move', font, CONSTANTS['WHITE'], 100, 100)
+    render_text('Left Mouse Button - Shoot', font, CONSTANTS['WHITE'], 100, 150)
+    render_text('Right Mouse Button - Auto-fire', font, CONSTANTS['WHITE'], 100, 200)
+    render_text('R - Reload', font, CONSTANTS['WHITE'], 100, 250)
+    render_text('1-7 - Switch weapon category', font, CONSTANTS['WHITE'], 100, 300)
+    render_text('Mouse Wheel - Cycle weapons in category', font, CONSTANTS['WHITE'], 100, 350)
+    render_text('ESC - Pause game', font, CONSTANTS['WHITE'], 100, 400)
     render_text(
         'Press ESC to return to main menu',
         font,
-        constants['WHITE'],
-        constants['WIDTH'] // 2 - 200,
-        constants['HEIGHT'] - 100,
+        CONSTANTS['WHITE'],
+        CONSTANTS['WIDTH'] // 2 - 200,
+        CONSTANTS['HEIGHT'] - 100,
     )
 
 
 def render_credits():
-    screen.fill(constants['BLACK'])
-    render_text('Credits', font, constants['WHITE'], constants['WIDTH'] // 2 - 50, 50)
-    render_text("Game Developer: Some dude living in his mom's basement", font, constants['WHITE'], 100, 150)
-    render_text('GraphicSFX: Me', font, constants['WHITE'], 100, 200)
-    render_text('SoundFX: Me', font, constants['WHITE'], 100, 250)
-    render_text('Programming: Me', font, constants['WHITE'], 100, 300)
-    render_text('Special Thanks: Coffee', font, constants['WHITE'], 100, 350)
+    screen.fill(CONSTANTS['BLACK'])
+    render_text('Credits', font, CONSTANTS['WHITE'], CONSTANTS['WIDTH'] // 2 - 50, 50)
+    render_text("Game Developer: Some dude living in his mom's basement", font, CONSTANTS['WHITE'], 100, 150)
+    render_text('GraphicSFX: Me', font, CONSTANTS['WHITE'], 100, 200)
+    render_text('SoundFX: Me', font, CONSTANTS['WHITE'], 100, 250)
+    render_text('Programming: Me', font, CONSTANTS['WHITE'], 100, 300)
+    render_text('Special Thanks: Coffee', font, CONSTANTS['WHITE'], 100, 350)
     render_text(
         'Press ESC to return to main menu',
         font,
-        constants['WHITE'],
-        constants['WIDTH'] // 2 - 200,
-        constants['HEIGHT'] - 100,
+        CONSTANTS['WHITE'],
+        CONSTANTS['WIDTH'] // 2 - 200,
+        CONSTANTS['HEIGHT'] - 100,
     )
 
 
@@ -1046,7 +1036,7 @@ def create_projectile(pellet_angle):
     )
 
 
-screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
+screen = pygame.display.set_mode((CONSTANTS['WIDTH'], CONSTANTS['HEIGHT']))
 pygame.display.set_caption('TBBP Game')
 
 font1 = pygame.font.Font('ps2.ttf', 15)
@@ -1054,7 +1044,7 @@ font = pygame.font.Font('ps2.ttf', 15)
 scorefont = pygame.font.Font('ps2.ttf', 20)
 bloodfont = pygame.font.Font('bloody.ttf', 20)
 fps_font = pygame.font.Font('ps2.ttf', 20)
-fps_color = constants['GAMMA']
+fps_color = CONSTANTS['GAMMA']
 clock = pygame.time.Clock()
 
 player_image = pygame.image.load('player.png').convert_alpha()
@@ -1140,19 +1130,19 @@ launchers = WeaponCategory(
 
 weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
 
-camera = Camera(constants['WIDTH'], constants['HEIGHT'])
+camera = Camera(CONSTANTS['WIDTH'], CONSTANTS['HEIGHT'])
 
 
 blood_particles = pygame.sprite.Group()
 small_circles = pygame.sprite.Group()
-player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+player = Player(CONSTANTS['VIRTUAL_WIDTH'] // 2, CONSTANTS['VIRTUAL_HEIGHT'] // 2)
 all_sprites = pygame.sprite.Group(player)
 projectiles = pygame.sprite.Group()
 zombies = pygame.sprite.Group()
 floating_texts = pygame.sprite.Group()
 energy_orbs = pygame.sprite.Group()
 SPAWN_ZOMBIE = pygame.USEREVENT + 1
-pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
+pygame.time.set_timer(SPAWN_ZOMBIE, CONSTANTS['SPAWN_INTERVAL'])
 current_wave = 1
 zombies_to_spawn = []
 
@@ -1191,13 +1181,13 @@ player_xp = 0
 auto_firing = False
 orb_image = pygame.transform.scale(orb_image, (20, 20))
 show_upgrade_panel = False
-player_xp_multiplier = 1.0
+PLAYER_XP_MULTIPLIER = 1.0
 
 
 while running:
     adjusted_mouse_pos = get_adjusted_mouse_pos(camera)
     keys = pygame.key.get_pressed()
-    dt = clock.tick(constants['FPS']) / 1000.0
+    dt = clock.tick(CONSTANTS['FPS']) / 1000.0
     current_time = pygame.time.get_ticks()
     time_since_last_shot = current_time - last_fired_time[player.current_weapon.name]
 
@@ -1224,7 +1214,7 @@ while running:
                 horizontal_padding = 50
                 vertical_padding = 50
 
-                for i, option in enumerate(upgrade_options):
+                for i, option in enumerate(UPGRADE_OPTIONS):
                     row = i // options_per_row
                     col = i % options_per_row
 
@@ -1277,8 +1267,8 @@ while running:
             if current_time >= wave_start_time:
                 if wave_delay_active:
                     wave_delay_active = False
-                if current_time - last_spawn_time >= constants['SPAWN_INTERVAL']:
-                    if zombies_to_spawn and len(zombies) < constants['MAX_ALIVE_ZOMBIES']:  # Add this check
+                if current_time - last_spawn_time >= CONSTANTS['SPAWN_INTERVAL']:
+                    if zombies_to_spawn and len(zombies) < CONSTANTS['MAX_ALIVE_ZOMBIES']:  # Add this check
                         zombie_type, count = random.choice(zombies_to_spawn)
                         spawn_zombie(zombie_type)
                         count -= 1
@@ -1395,7 +1385,7 @@ while running:
                     floating_texts.add(damage_text)
                     projectile.reduce_penetration(zombie)
 
-                    for _ in range(constants['BLOOD_SPRAY_PARTICLES']):
+                    for _ in range(CONSTANTS['BLOOD_SPRAY_PARTICLES']):
                         angle = random.uniform(0, 2 * math.pi)
                         speed = random.uniform(0.7, 1.5)
                         blood_particle = BloodParticle(zombie.rect.center, angle, speed)
@@ -1408,17 +1398,17 @@ while running:
         bg_x = -camera.rect.x
         bg_y = -camera.rect.y
         scaled_background = pygame.transform.scale(
-            background_image, (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+            background_image, (CONSTANTS['VIRTUAL_WIDTH'], CONSTANTS['VIRTUAL_HEIGHT'])
         )
-        screen_rect = pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+        screen_rect = pygame.Rect(0, 0, CONSTANTS['VIRTUAL_WIDTH'], CONSTANTS['VIRTUAL_HEIGHT'])
         image_rect = scaled_background.get_rect()
         image_rect.topleft = (bg_x, bg_y)
         cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
         screen.blit(cropped_image, (0, 0))
         screen.blit(CURSOR_IMG, cursor_rect)
 
-        progress = player_xp / level_thresholds[player_level + 1]
-        draw_progress_bar(screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, constants['RED'])
+        progress = player_xp / LEVEL_THRESHOLDS[player_level + 1]
+        draw_progress_bar(screen, 10, CONSTANTS['HEIGHT'] - 30, CONSTANTS['WIDTH'] - 20, 20, progress, CONSTANTS['RED'])
 
         for orb in energy_orbs:
             screen.blit(orb.image, camera.apply(orb))
@@ -1451,25 +1441,25 @@ while running:
                     game_state = 'main_menu'
 
         elapsed_time = (current_time - start_time) / 1000
-        render_text(f'Time: {elapsed_time:.2f} s', font, constants['WHITE'], 475, 10)
-        render_text(f'Wave: {current_wave}', font, constants['WHITE'], 700, 10)
-        render_text(f"Score: {constants['SCORE']}", scorefont, constants['WHITE'], 875, 10)
-        render_text(f'FPS: {int(clock.get_fps())}', fps_font, constants['GAMMA'], constants['WIDTH'] - 140, 10)
+        render_text(f'Time: {elapsed_time:.2f} s', font, CONSTANTS['WHITE'], 475, 10)
+        render_text(f'Wave: {current_wave}', font, CONSTANTS['WHITE'], 700, 10)
+        render_text(f"Score: {CONSTANTS['SCORE']}", scorefont, CONSTANTS['WHITE'], 875, 10)
+        render_text(f'FPS: {int(clock.get_fps())}', fps_font, CONSTANTS['GAMMA'], CONSTANTS['WIDTH'] - 140, 10)
         render_text(
-            f"Total Kills: {constants['TOTAL_KILLS']} (Remaining: {len(zombies)})", font, constants['WHITE'], 10, 10
+            f"Total Kills: {CONSTANTS['TOTAL_KILLS']} (Remaining: {len(zombies)})", font, CONSTANTS['WHITE'], 10, 10
         )
 
         version_text = 'Alpha 1.02'
-        version_surface = version_font.render(version_text, True, constants['WHITE'])
+        version_surface = version_font.render(version_text, True, CONSTANTS['WHITE'])
         version_rect = version_surface.get_rect()
-        version_rect.bottomright = (constants['WIDTH'] - 10, constants['HEIGHT'] - 40)
+        version_rect.bottomright = (CONSTANTS['WIDTH'] - 10, CONSTANTS['HEIGHT'] - 40)
         screen.blit(version_surface, version_rect)
 
         player_pos = camera.apply(player).topleft
         weapon_text = f'{player.current_weapon.name}'
         ammo_text = f'| {player.current_weapon.ammo} |'
-        weapon_text_surface = font1.render(weapon_text, True, constants['WHITE'])
-        ammo_text_surface = font1.render(ammo_text, True, constants['YELLOW'])
+        weapon_text_surface = font1.render(weapon_text, True, CONSTANTS['WHITE'])
+        ammo_text_surface = font1.render(ammo_text, True, CONSTANTS['YELLOW'])
 
         weapon_text_pos = (player_pos[0], player_pos[1] - -60)
         ammo_text_pos = (player_pos[0], player_pos[1] - -80)
@@ -1478,59 +1468,59 @@ while running:
         screen.blit(ammo_text_surface, ammo_text_pos)
 
         if auto_firing:
-            auto_fire_text = font1.render('Auto-Fire: ON', True, constants['YELLOW'])
+            auto_fire_text = font1.render('Auto-Fire: ON', True, CONSTANTS['YELLOW'])
             auto_fire_text_pos = (player_pos[0], player_pos[1] - -100)
             screen.blit(auto_fire_text, auto_fire_text_pos)
 
         player.draw_health_bar(camera)
         if reloading[player.current_weapon.name]:
             reload_text = 'Reloading...'
-            reload_text_surface = font1.render(reload_text, True, constants['YELLOW'])
+            reload_text_surface = font1.render(reload_text, True, CONSTANTS['YELLOW'])
             reload_text_pos = (player_pos[0], player_pos[1] - -120)
             screen.blit(reload_text_surface, reload_text_pos)
     elif game_state == 'main_menu':
-        screen.fill(constants['BLACK'])
+        screen.fill(CONSTANTS['BLACK'])
         render_text(
             'The Black Box Project',
             font,
-            constants['WHITE'],
-            constants['WIDTH'] // 2 - 200,
-            constants['HEIGHT'] // 2 - 150,
+            CONSTANTS['WHITE'],
+            CONSTANTS['WIDTH'] // 2 - 200,
+            CONSTANTS['HEIGHT'] // 2 - 150,
         )
         render_text(
             'Press ENTER to Play',
             font,
-            constants['WHITE'],
-            constants['WIDTH'] // 2 - 200,
-            constants['HEIGHT'] // 2 - 50,
+            CONSTANTS['WHITE'],
+            CONSTANTS['WIDTH'] // 2 - 200,
+            CONSTANTS['HEIGHT'] // 2 - 50,
         )
         render_text(
-            'Press H for How to Play', font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2
+            'Press H for How to Play', font, CONSTANTS['WHITE'], CONSTANTS['WIDTH'] // 2 - 200, CONSTANTS['HEIGHT'] // 2
         )
         render_text(
             'Press C for Credits',
             font,
-            constants['WHITE'],
-            constants['WIDTH'] // 2 - 200,
-            constants['HEIGHT'] // 2 + 50,
+            CONSTANTS['WHITE'],
+            CONSTANTS['WIDTH'] // 2 - 200,
+            CONSTANTS['HEIGHT'] // 2 + 50,
         )
         render_text(
-            'Press ESC to Quit', font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 + 100
+            'Press ESC to Quit', font, CONSTANTS['WHITE'], CONSTANTS['WIDTH'] // 2 - 200, CONSTANTS['HEIGHT'] // 2 + 100
         )
     elif game_state == 'paused':
-        screen.fill(constants['BLACK'])
+        screen.fill(CONSTANTS['BLACK'])
         render_text(
-            'Game Paused', font, constants['WHITE'], constants['WIDTH'] // 2 - 150, constants['HEIGHT'] // 2 - 100
+            'Game Paused', font, CONSTANTS['WHITE'], CONSTANTS['WIDTH'] // 2 - 150, CONSTANTS['HEIGHT'] // 2 - 100
         )
         render_text(
-            'Press ENTER to Resume', font, constants['WHITE'], constants['WIDTH'] // 2 - 250, constants['HEIGHT'] // 2
+            'Press ENTER to Resume', font, CONSTANTS['WHITE'], CONSTANTS['WIDTH'] // 2 - 250, CONSTANTS['HEIGHT'] // 2
         )
         render_text(
             'Press ESC to Main Menu',
             font,
-            constants['WHITE'],
-            constants['WIDTH'] // 2 - 250,
-            constants['HEIGHT'] // 2 + 50,
+            CONSTANTS['WHITE'],
+            CONSTANTS['WIDTH'] // 2 - 250,
+            CONSTANTS['HEIGHT'] // 2 + 50,
         )
     elif game_state == 'how_to_play':
         render_how_to_play()
