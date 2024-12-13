@@ -910,16 +910,7 @@ def spawn_zombie(zombie_type):
 
 
 def restart_game():
-    global \
-        player, \
-        all_sprites, \
-        projectiles, \
-        zombies, \
-        blood_particles, \
-        small_circles, \
-        current_wave, \
-        player_level, \
-        player_xp
+    global current_wave, player_level, player_xp
     CONSTANTS['SCORE'] = 0
     CONSTANTS['BLOOD'] = 0
     CONSTANTS['TOTAL_KILLS'] = 0
