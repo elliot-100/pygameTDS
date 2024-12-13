@@ -2,7 +2,6 @@ import pygame
 import sys
 import math
 import random
-from pygame.math import Vector2
 import heapq
 from collections import defaultdict
 
@@ -506,7 +505,6 @@ class Zombie(pygame.sprite.Sprite):
                     direction = direction.normalize() * self.speed
                     self.rect.x += direction.x
                     self.rect.y += direction.y
-                tolerance = 2
                 if (
                     abs(self.rect.centerx - next_pos[0] * 32) < self.speed
                     and abs(self.rect.centery - next_pos[1] * 32) < self.speed
@@ -634,29 +632,11 @@ class Zombie(pygame.sprite.Sprite):
             self.fade_start_time = pygame.time.get_ticks()
             constants['SCORE'] += self.get_score_value()
             bloodline_xp_gained = self.blood()
-            # Remove this line: constants['BLOOD'] += bloodline_xp_gained
             constants['TOTAL_KILLS'] += 1
             energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
             energy_orbs.add(energy_orb)
             total_xp_gained = self.get_score_value() + bloodline_xp_gained
             update_player_level_and_xp(total_xp_gained)
-
-    def flash(self):
-        flash_duration = 100
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_damage_time < flash_duration:
-            self.image.fill((255, 0, 0), special_flags=pygame.BLEND_MULT)
-        else:
-            self.image = self.original_image.copy()
-
-    def fade_out(self):
-        fade_duration = 500
-        elapsed_time = pygame.time.get_ticks() - self.fade_start_time
-        if elapsed_time < fade_duration:
-            alpha = 255 - int((elapsed_time / fade_duration) * 255)
-            self.image.set_alpha(alpha)
-        else:
-            self.kill()
 
     def get_score_value(self):
         score_table = {'a': 5, 'b': 10, 'c': 15, 'd': 20, 'e': 25, 'f': 30, 'g': 35, 'h': 40, 'i': 45, 'j': 50, 'k': 55}
@@ -1503,7 +1483,7 @@ while running:
 
         player.draw_health_bar(camera)
         if reloading[player.current_weapon.name]:
-            reload_text = f'Reloading...'
+            reload_text = 'Reloading...'
             reload_text_surface = font1.render(reload_text, True, constants['YELLOW'])
             reload_text_pos = (player_pos[0], player_pos[1] - -120)
             screen.blit(reload_text_surface, reload_text_pos)
