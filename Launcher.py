@@ -71,11 +71,7 @@ CONSTANTS = {
     'WAVE_DELAY': 10000,
     'BLOOD_SPRAY_PARTICLES': 5,
     'BLOOD_SPRAY_LIFETIME': 100000,
-    'SCORE': 0,
-    'BLOOD': 0,
-    'TOTAL_KILLS': 0,
 }
-PLAYER_XP_MULTIPLIER = 1.0
 UPGRADE_OPTIONS = [
     'HP +20%',
     'Bullet SPD 10%',
@@ -773,7 +769,7 @@ def render_upgrade_panel():
 
 
 def apply_upgrade(index):
-    global PLAYER_XP_MULTIPLIER  # Make sure this is declared as a global variable
+    global player_xp_multiplier  # Make sure this is declared as a global variable
 
     if index == 0:  # Increase Health
         player.health *= 1.1
@@ -801,7 +797,7 @@ def apply_upgrade(index):
             for weapon in category.weapons:
                 weapon.spread_angle *= 0.9
     elif index == 7:  # Increase XP Gain
-        PLAYER_XP_MULTIPLIER *= 100
+        player_xp_multiplier *= 100
     elif index == 8:  # Unlock Random Weapon
         unlock_random_weapon()
 
@@ -1175,13 +1171,14 @@ start_time = 0
 last_spawn_time = 0
 wave_start_time = 0
 wave_delay_active = False
-TOTAL_KILLS = 0
+score = 0
+total_kills = 0
 player_level = 1
 player_xp = 0
 auto_firing = False
 orb_image = pygame.transform.scale(orb_image, (20, 20))
 show_upgrade_panel = False
-PLAYER_XP_MULTIPLIER = 1.0
+player_xp_multiplier = 1.0
 
 
 while running:
@@ -1443,11 +1440,9 @@ while running:
         elapsed_time = (current_time - start_time) / 1000
         render_text(f'Time: {elapsed_time:.2f} s', font, CONSTANTS['WHITE'], 475, 10)
         render_text(f'Wave: {current_wave}', font, CONSTANTS['WHITE'], 700, 10)
-        render_text(f"Score: {CONSTANTS['SCORE']}", scorefont, CONSTANTS['WHITE'], 875, 10)
+        render_text(f'Score: {score}', scorefont, CONSTANTS['WHITE'], 875, 10)
         render_text(f'FPS: {int(clock.get_fps())}', fps_font, CONSTANTS['GAMMA'], CONSTANTS['WIDTH'] - 140, 10)
-        render_text(
-            f"Total Kills: {CONSTANTS['TOTAL_KILLS']} (Remaining: {len(zombies)})", font, CONSTANTS['WHITE'], 10, 10
-        )
+        render_text(f'Total Kills: {total_kills} (Remaining: {len(zombies)})', font, CONSTANTS['WHITE'], 10, 10)
 
         version_text = 'Alpha 1.02'
         version_surface = version_font.render(version_text, True, CONSTANTS['WHITE'])
