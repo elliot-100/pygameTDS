@@ -20,6 +20,7 @@ line-length = 120
 select = [
     "E",  # pycodestyle
     "F",  # Pyflakes
+    "I",  # isort
     "W",  # pycodestyle warnings
 ]
 ignore = []
