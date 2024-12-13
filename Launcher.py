@@ -1,9 +1,10 @@
-import pygame
-import sys
+import heapq
 import math
 import random
-import heapq
+import sys
 from collections import defaultdict
+
+import pygame
 
 pygame.init()
 
