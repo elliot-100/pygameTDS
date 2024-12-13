@@ -16,5 +16,6 @@ quote-style = "single"
 
 [dependency-groups]
 dev = [
+    "pre-commit>=4.0.1",
     "ruff>=0.8.3",
 ]
