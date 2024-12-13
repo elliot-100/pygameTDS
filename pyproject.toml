@@ -5,3 +5,16 @@ dependencies = [
   "pygame>=2.6.1",
 ]
 requires-python = ">=3.11"
+
+[tool.ruff]
+# Allow lines to be as long as 120.
+line-length = 120
+
+[tool.ruff.format]
+# Prefer single quotes over double quotes.
+quote-style = "single"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.3",
+]
