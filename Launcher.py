@@ -42,6 +42,8 @@ LEVEL_THRESHOLDS = {
 }
 
 CONSTANTS = {
+    'MOUSE_BUTTON_LEFT': 1,
+    'MOUSE_BUTTON_RIGHT': 3,
     'WIDTH': 1920,
     'HEIGHT': 1080,
     'VIRTUAL_WIDTH': 2020,
@@ -64,6 +66,7 @@ CONSTANTS = {
     'SPAWN_INTERVAL': 450,
     'SMALL_CIRCLE_LIFETIME': 9999,
     'FPS': 60,
+    'ZOMBIE_FLASH_DURATION': 50,
     'ZOMBIE_FADE_DURATION': 150,
     'MAX_ALIVE_ZOMBIES': 100,
     'HEALTH_BAR_VISIBLE_DURATION': 120,
@@ -641,7 +644,7 @@ class Zombie(pygame.sprite.Sprite):
     def update_flash(self):
         if self.flash_active:
             elapsed_time = pygame.time.get_ticks() - self.flash_start_time
-            if elapsed_time > 50:
+            if elapsed_time > CONSTANTS['ZOMBIE_FLASH_DURATION']:
                 self.image = self.original_image.copy()
                 self.flash_active = False
 
@@ -1194,10 +1197,10 @@ while running:
         elif event.type == pygame.MOUSEMOTION:
             cursor_rect.center = event.pos
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 3:  # Right mouse button
+            if event.button == CONSTANTS['MOUSE_BUTTON_RIGHT']:
                 auto_firing = not auto_firing
                 print('Auto-firing mode enabled' if auto_firing else 'Auto-firing mode disabled')
-            elif event.button == 1 and show_upgrade_panel:  # Left mouse button for upgrade panel
+            elif event.button == CONSTANTS['MOUSE_BUTTON_LEFT'] and show_upgrade_panel:
                 mouse_pos = pygame.mouse.get_pos()
 
                 panel_width = 1600
