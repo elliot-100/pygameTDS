@@ -1047,11 +1047,6 @@ def set_initial_weapon(self):
                 weapon.locked = True
     self.current_weapon = first_pistol
 
-    for weapon in weapon_constants:
-        current_ammo[weapon] = weapon_constants[weapon]['AMMO']
-        reloading[weapon] = False
-        last_fired_time[weapon] = 0
-
 
 def get_adjusted_mouse_pos(camera):
     mouse_pos = pygame.mouse.get_pos()
