@@ -1,7 +1,30 @@
 [project]
 name = "pygameTDS"
 version = "1.01.alpha"
-dependencies = [
-  "pygame>=2.6.1",
-]
 requires-python = ">=3.11"
+dependencies = [
+    "pygame>=2.6.1",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.0.1",
+    "ruff>=0.8.4",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "W",  # pycodestyle warnings
+]
+ignore = [
+    "E501",  # Line too long (133 > 88)
+    "F541",  # f-string without any placeholders
+    "W291", # Trailing whitespace
+    "W293",  # Blank line contains whitespace
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
