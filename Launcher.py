@@ -89,9 +89,13 @@ UPGRADE_OPTIONS = [
 
 
 class EnergyOrb(pygame.sprite.Sprite):
+    IMAGE_FILE = 'orb.png'
+
     def __init__(self, x, y):
         super().__init__()
-        self.image = orb_image
+        image = pygame.image.load(EnergyOrb.IMAGE_FILE).convert_alpha()
+        self.image = pygame.transform.scale(image, (20, 20))
+
         self.rect = self.image.get_rect(center=(x, y))
         self.lifetime = 10000000
         self.spawn_time = pygame.time.get_ticks()
@@ -102,9 +106,11 @@ class EnergyOrb(pygame.sprite.Sprite):
 
 
 class Chest(pygame.sprite.Sprite):
+    IMAGE_FILE = 'chest.png'
+
     def __init__(self, x, y):
         super().__init__()
-        self.image = chest_image
+        self.image = pygame.image.load(Chest.IMAGE_FILE).convert_alpha()
         self.rect = self.image.get_rect(center=(x, y))
         self.opened = False
 
@@ -249,12 +255,14 @@ class MuzzleFlash(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
+    IMAGE_FILE = 'player.png'
+
     def __init__(self, x, y):
         super().__init__()
-        self.original_image = player_image
+        self.original_image = pygame.image.load(Player.IMAGE_FILE).convert_alpha()
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x, y))
-        self.mask = player_mask
+        self.mask = pygame.mask.from_surface(self.image)
         self.speed = CONSTANTS['PLAYER_SPEED']
         self.health = CONSTANTS['PLAYER_HEALTH']
         self.shake_offset = (1, 1)
@@ -1037,12 +1045,8 @@ fps_font = pygame.font.Font('ps2.ttf', 20)
 fps_color = CONSTANTS['GAMMA']
 clock = pygame.time.Clock()
 
-player_image = pygame.image.load('player.png').convert_alpha()
-player_mask = pygame.mask.from_surface(player_image)
 zombie_images = [pygame.image.load(f'zombie{i}.png').convert_alpha() for i in range(1, 10)]
 background_image = pygame.image.load('zombies.png').convert()
-chest_image = pygame.image.load('chest.png').convert_alpha()
-orb_image = pygame.image.load('orb.png').convert_alpha()
 
 all_zombies_group = pygame.sprite.Group()
 weapon_font = pygame.font.Font('ps2.ttf', 17)
@@ -1170,7 +1174,6 @@ total_kills = 0
 player_level = 1
 player_xp = 0
 auto_firing = False
-orb_image = pygame.transform.scale(orb_image, (20, 20))
 show_upgrade_panel = False
 player_xp_multiplier = 1.0
 
