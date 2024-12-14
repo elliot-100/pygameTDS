@@ -11,6 +11,7 @@ import pygame
 from src.constants import COLORS, PENETRATION_COLORS
 from src.cursor import Cursor
 from src.muzzle_flash import MuzzleFlash
+from src.weapons import Weapon
 
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     BASE_DIR = Path(sys._MEIPASS)
@@ -112,35 +113,6 @@ class Chest(pygame.sprite.Sprite):
         """Opens the chest, unlocks a random weapon, and removes it from the game."""
         self.opened = True
         self.kill()
-
-
-class Weapon:
-    """Represents a weapon with its attributes."""
-
-    def __init__(
-        self,
-        name,
-        projectile_speed,
-        fire_rate,
-        damage,
-        spread_angle,
-        ammo,
-        reload_time,
-        penetration,
-        locked,
-        blast_radius=0,
-    ):
-        self.name = name
-        self.projectile_speed = projectile_speed
-        self.fire_rate = fire_rate
-        self.damage = damage
-        self.spread_angle = spread_angle
-        self.ammo = ammo
-        self.max_ammo = ammo
-        self.reload_time = reload_time
-        self.penetration = penetration
-        self.locked = locked
-        self.blast_radius = blast_radius
 
 
 class WeaponCategory:
