@@ -431,32 +431,34 @@ class Projectile(pygame.sprite.Sprite):
         return self.damage
 
 
-class ZombieClass:
-    a = {'HEALTH': 50, 'SPEED': 1.0}
-    b = {'HEALTH': 66, 'SPEED': 1.1}
-    c = {'HEALTH': 99, 'SPEED': 1.2}
-    d = {'HEALTH': 133, 'SPEED': 1.3}
-    e = {'HEALTH': 166, 'SPEED': 1.4}
-    f = {'HEALTH': 199, 'SPEED': 1.5}
-    g = {'HEALTH': 233, 'SPEED': 1.6}
-    h = {'HEALTH': 266, 'SPEED': 1.7}
-    i = {'HEALTH': 299, 'SPEED': 1.8}
-    j = {'HEALTH': 333, 'SPEED': 1.9}
-    k = {'HEALTH': 444, 'SPEED': 2.0}
-
-
 class Zombie(pygame.sprite.Sprite):
-    def __init__(self, x, y, player, zombie_image, zombie_class):
+    ZOMBIE_TYPES = {
+        # Keep keys for compatibility with upstream
+        'a': {'MAX_HEALTH': 50, 'SPEED': 1.0, 'IMAGE_FILE': 'zombie1.png', 'SCORE': 5, 'BLOOD': 1},
+        'b': {'MAX_HEALTH': 66, 'SPEED': 1.1, 'IMAGE_FILE': 'zombie2.png', 'SCORE': 15, 'BLOOD': 2},
+        'c': {'MAX_HEALTH': 99, 'SPEED': 1.2, 'IMAGE_FILE': 'zombie3.png', 'SCORE': 20, 'BLOOD': 3},
+        'd': {'MAX_HEALTH': 133, 'SPEED': 1.3, 'IMAGE_FILE': 'zombie4.png', 'SCORE': 25, 'BLOOD': 4},
+        'e': {'MAX_HEALTH': 166, 'SPEED': 1.4, 'IMAGE_FILE': 'zombie5.png', 'SCORE': 30, 'BLOOD': 5},
+        'f': {'MAX_HEALTH': 199, 'SPEED': 1.5, 'IMAGE_FILE': 'zombie6.png', 'SCORE': 35, 'BLOOD': 6},
+        'g': {'MAX_HEALTH': 233, 'SPEED': 1.6, 'IMAGE_FILE': 'zombie7.png', 'SCORE': 40, 'BLOOD': 7},
+        'h': {'MAX_HEALTH': 266, 'SPEED': 1.7, 'IMAGE_FILE': 'zombie8.png', 'SCORE': 45, 'BLOOD': 8},
+        'i': {'MAX_HEALTH': 299, 'SPEED': 1.8, 'IMAGE_FILE': 'zombie9.png', 'SCORE': 50, 'BLOOD': 9},
+        'j': {'MAX_HEALTH': 333, 'SPEED': 1.9, 'IMAGE_FILE': 'zombie10.png', 'SCORE': 55, 'BLOOD': 10},
+        'k': {'MAX_HEALTH': 444, 'SPEED': 2.0, 'IMAGE_FILE': 'zombie11.png', 'SCORE': 60, 'BLOOD': 11},
+    }
+
+    def __init__(self, x, y, image_file, speed, max_health, score_value, blood_value):
         super().__init__()
-        self.original_image = zombie_image
+        image = pygame.image.load(image_file).convert_alpha()
+        self.original_image = image
         self.image = self.original_image.copy()
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = pygame.mask.from_surface(self.image)
-        self.speed = zombie_class['SPEED']
-        self.player = player
-        self.max_health = zombie_class['HEALTH']
+        self.speed = speed
+        self.max_health = max_health
         self.health = self.max_health
-        self.zombie_class_name = self.get_class_name(zombie_class)
+        self.score_value = score_value
+        self.blood_value = blood_value
         self.fading = False
         self.fade_start_time = 0
         self.last_damage_time = 0
@@ -475,16 +477,36 @@ class Zombie(pygame.sprite.Sprite):
         self.show_health_bar = False
         self.last_damage_time = 0
 
-    def get_class_name(self, zombie_class):
-        for name, cls in vars(ZombieClass).items():
-            if isinstance(cls, dict) and cls == zombie_class:
-                return name
-        return 'a'
+    @classmethod
+    def spawn(cls, zombie_type='a'):
+        """Spawns a new zombie of given type at a random side of the playing area.
+
+        Defaults to zombie type 'a'.
+        """
+        spawn_side = random.choice(['top', 'bottom', 'left', 'right'])
+        if spawn_side == 'top':
+            x, y = random.randint(50, CONSTANTS['VIRTUAL_WIDTH']), 50
+        elif spawn_side == 'bottom':
+            x, y = random.randint(50, CONSTANTS['VIRTUAL_WIDTH']), CONSTANTS['VIRTUAL_HEIGHT']
+        elif spawn_side == 'left':
+            x, y = 0, random.randint(50, CONSTANTS['VIRTUAL_HEIGHT'])
+        else:
+            x, y = CONSTANTS['VIRTUAL_WIDTH'], random.randint(50, CONSTANTS['VIRTUAL_HEIGHT'])
+
+        return cls(
+            x=x,
+            y=y,
+            image_file=cls.ZOMBIE_TYPES[zombie_type]['IMAGE_FILE'],
+            speed=cls.ZOMBIE_TYPES[zombie_type]['SPEED'],
+            max_health=cls.ZOMBIE_TYPES[zombie_type]['MAX_HEALTH'],
+            score_value=cls.ZOMBIE_TYPES[zombie_type]['SCORE'],
+            blood_value=cls.ZOMBIE_TYPES[zombie_type]['BLOOD'],
+        )
 
     def get_new_roaming_target(self):
         return random.randint(0, CONSTANTS['VIRTUAL_WIDTH']), random.randint(0, CONSTANTS['VIRTUAL_HEIGHT'])
 
-    def update(self):
+    def update(self, player):
         self.last_damage_time = pygame.time.get_ticks()
         self.flash()
         if self.fading:
@@ -494,7 +516,7 @@ class Zombie(pygame.sprite.Sprite):
             if self.show_health_bar and current_time - self.last_damage_time > CONSTANTS['HEALTH_BAR_VISIBLE_DURATION']:
                 self.show_health_bar = False
             if current_time - self.last_path_update > self.path_update_interval:
-                self.update_path()
+                self.update_path(player)
                 self.last_path_update = current_time
 
             if self.path:
@@ -514,12 +536,12 @@ class Zombie(pygame.sprite.Sprite):
 
         self.avoid_other_zombies()
         self.check_boundaries()
-        self.rotate_to_target()
+        self.rotate_to_target(player)
         self.hitbox.center = self.rect.center
 
-    def update_path(self):
+    def update_path(self, player):
         start = (self.rect.centerx // 32, self.rect.centery // 32)
-        goal = (self.player.rect.centerx // 32, self.player.rect.centery // 32)
+        goal = (player.rect.centerx // 32, player.rect.centery // 32)
         self.path = self.a_star(start, goal)
 
     def get_neighbors(self, pos):
@@ -587,11 +609,11 @@ class Zombie(pygame.sprite.Sprite):
     def check_boundaries(self):
         self.rect.clamp_ip(pygame.Rect(0, 0, CONSTANTS['VIRTUAL_WIDTH'], CONSTANTS['VIRTUAL_HEIGHT']))
 
-    def rotate_to_target(self):
+    def rotate_to_target(self, player):
         if self.path:
             target = (self.path[0][0] * 32, self.path[0][1] * 32)
         else:
-            target = (self.player.rect.centerx, self.player.rect.centery)
+            target = (player.rect.centerx, player.rect.centery)
 
         dx = target[0] - self.rect.centerx
         dy = target[1] - self.rect.centery
@@ -631,21 +653,13 @@ class Zombie(pygame.sprite.Sprite):
         if not self.fading:
             self.fading = True
             self.fade_start_time = pygame.time.get_ticks()
-            player.score += self.get_score_value()
-            bloodline_xp_gained = self.blood()
             player.total_kills += 1
-            energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
-            energy_orbs.add(energy_orb)
-            total_xp_gained = self.get_score_value() + bloodline_xp_gained
+            player.score += self.score_value
+            total_xp_gained = self.score_value + self.blood_value
             update_player_level_and_xp(total_xp_gained)
 
-    def get_score_value(self):
-        score_table = {'a': 5, 'b': 10, 'c': 15, 'd': 20, 'e': 25, 'f': 30, 'g': 35, 'h': 40, 'i': 45, 'j': 50, 'k': 55}
-        return score_table.get(self.zombie_class_name, 5)
-
-    def blood(self):
-        bloodline_table = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8, 'i': 9, 'j': 10, 'k': 11}
-        return bloodline_table.get(self.zombie_class_name, 1)
+            energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
+            energy_orbs.add(energy_orb)
 
     def flash(self):
         self.image.fill(CONSTANTS['WHITE'], special_flags=pygame.BLEND_ADD)
@@ -889,35 +903,6 @@ def calculate_zombies(wave):
     return [(chr(97 + i), base_zombies // zombie_types) for i in range(zombie_types)]
 
 
-def spawn_zombie(zombie_type):
-    spawn_side = random.choice(['top', 'bottom', 'left', 'right'])
-    if spawn_side == 'top':
-        x, y = random.randint(50, CONSTANTS['VIRTUAL_WIDTH']), 50
-    elif spawn_side == 'bottom':
-        x, y = random.randint(50, CONSTANTS['VIRTUAL_WIDTH']), CONSTANTS['VIRTUAL_HEIGHT']
-    elif spawn_side == 'left':
-        x, y = 0, random.randint(50, CONSTANTS['VIRTUAL_HEIGHT'])
-    else:
-        x, y = CONSTANTS['VIRTUAL_WIDTH'], random.randint(50, CONSTANTS['VIRTUAL_HEIGHT'])
-    zombie_classes = {
-        'a': (ZombieClass.a, zombie_images[0]),
-        'b': (ZombieClass.b, zombie_images[1]),
-        'c': (ZombieClass.c, zombie_images[2]),
-        'd': (ZombieClass.d, zombie_images[3]),
-        'e': (ZombieClass.e, zombie_images[4]),
-        'f': (ZombieClass.f, zombie_images[5]),
-        'g': (ZombieClass.g, zombie_images[6]),
-        'h': (ZombieClass.h, zombie_images[7]),
-        'i': (ZombieClass.i, zombie_images[8]),
-        'j': (ZombieClass.j, zombie_images[9]),
-        'k': (ZombieClass.k, zombie_images[10]),
-    }
-    zombie_class, zombie_image = zombie_classes.get(zombie_type, (ZombieClass.a, zombie_images[0]))
-    zombie = Zombie(x, y, player, zombie_image, zombie_class)
-    all_sprites.add(zombie)
-    zombies.add(zombie)
-
-
 def restart_game():
     global current_wave
     current_wave = 0
@@ -1046,7 +1031,6 @@ if __name__ == '__main__':
     fps_color = CONSTANTS['GAMMA']
     clock = pygame.time.Clock()
 
-    zombie_images = [pygame.image.load(f'zombie{i}.png').convert_alpha() for i in range(1, 10)]
     background_image = pygame.image.load('zombies.png').convert()
 
     all_zombies_group = pygame.sprite.Group()
@@ -1263,7 +1247,9 @@ if __name__ == '__main__':
                     if current_time - last_spawn_time >= CONSTANTS['SPAWN_INTERVAL']:
                         if zombies_to_spawn and len(zombies) < CONSTANTS['MAX_ALIVE_ZOMBIES']:  # Add this check
                             zombie_type, count = random.choice(zombies_to_spawn)
-                            spawn_zombie(zombie_type)
+                            new_zombie = Zombie.spawn(zombie_type)
+                            zombies.add(new_zombie)
+                            all_sprites.add(new_zombie)
                             count -= 1
                             if count > 0:
                                 zombies_to_spawn = [
@@ -1366,7 +1352,7 @@ if __name__ == '__main__':
             player.update_shake()
             blood_particles.update()
             projectiles.update()
-            zombies.update()
+            zombies.update(player)
             small_circles.update()
             floating_texts.update()
             camera.update(player)
