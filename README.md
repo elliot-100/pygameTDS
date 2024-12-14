@@ -36,17 +36,18 @@ Sounds good?
 Current Version: Alpha 1.01
 
 👾 **Roadmap**
-Different types of enemies - (spitting zombies, exploding zombies, bloater zombies and others).
 
-Different levels - There should be multiple levels.
+- Different types of enemies - (spitting zombies, exploding zombies, bloater zombies and others).
 
-Multiple characters - There should be multiple chaacters each with their own specialization.
+- Different levels - There should be multiple levels.
 
-Power-ups - There should be different types of powerups which will occasionally appear on screen.
+- Multiple characters - There should be multiple chaacters each with their own specialization.
 
-Global Unlocks - There should be global unlocks, These unclocks are applied across multiple characters and will persist after a game has finished.
+- Power-ups - There should be different types of powerups which will occasionally appear on screen.
 
-Leaaderboard - There should be a leaderboard so the player can keep track of their previous runs and give them something to work towards in their future runs.
+- Global Unlocks - There should be global unlocks, These unclocks are applied across multiple characters and will persist after a game has finished.
+
+- Leaaderboard - There should be a leaderboard so the player can keep track of their previous runs and give them something to work towards in their future runs.
 
 Animations - There are very basic animations right now it the future the game should be fully animated to improve the overall experience.
 
