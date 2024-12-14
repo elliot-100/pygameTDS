@@ -6,8 +6,6 @@ from collections import defaultdict
 
 import pygame
 
-pygame.init()
-
 LEVEL_THRESHOLDS = {
     1: 0,
     2: 90,
@@ -1035,6 +1033,7 @@ def create_projectile(pellet_angle):
 
 
 if __name__ == '__main__':
+    pygame.init()
     screen = pygame.display.set_mode((CONSTANTS['WIDTH'], CONSTANTS['HEIGHT']))
     pygame.display.set_caption('TBBP Game')
 
