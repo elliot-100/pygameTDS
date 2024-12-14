@@ -13,7 +13,7 @@ PygameTDS is an open-source top-down shooter engine with rougelite elements that
 👾 **Controls**  
 - Move: WASD
 - Shoot: LMB (left mouse button)
-- Auto-Firee: RMB (Right mouse button)
+- Auto-Fire: RMB (Right mouse button)
 - Reload: R
 - Change weapons: Mouse Wheel or 1-9 keys
 - Pause: ESC
@@ -39,13 +39,13 @@ Fork the repo, make your changes, and submit a pull request. Here's a roadmap fo
 
 - Different levels - There should be multiple levels. Currently assigned to: [Condasoft]
 
-- Multiple characters - There should be multiple chaacters each with their own specialization. Currently assigned to: [Condasoft]
+- Multiple characters - There should be multiple characters each with their own specialization. Currently assigned to: [Condasoft]
 
 - Power-ups - There should be different types of powerups which will occasionally appear on screen. Currently assigned to: [Condasoft]
 
-- Global Unlocks - There should be global unlocks, These unclocks are applied across multiple characters and will persist after a game has finished. Currently assigned to: [Condasoft]
+- Global Unlocks - There should be global unlocks, These unlocks are applied across multiple characters and will persist after a game has finished. Currently assigned to: [Condasoft]
 
-- Leaaderboard - There should be a leaderboard so the player can keep track of their previous runs and give them something to work towards in their future runs. Currently assigned to: [Condasoft]
+- Leaderboard - There should be a leaderboard so the player can keep track of their previous runs and give them something to work towards in their future runs. Currently assigned to: [Condasoft]
 
-- Animations - There are very basic animations right now it the future the game should be fully animated to improve the overall experience. Currently assigned to: [Condasoft]
+- Animations - There are very basic animations right now in the future the game should be fully animated to improve the overall experience. Currently assigned to: [Condasoft]
 
