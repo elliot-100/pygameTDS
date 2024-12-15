@@ -71,9 +71,6 @@ constants = {
     'BLOOD_SPRAY_LIFETIME': 100000,
     'PLAYER_HEALTH': 7500,
     'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
-    'SCORE': 0,
-    'BLOOD': 0,
-    'TOTAL_KILLS': 0,
     'ZOMBIE_AVOIDANCE_RADIUS': 5,
     'WAVE_DELAY': 10000,
     'VIRTUAL_WIDTH': 2020,  
@@ -88,7 +85,6 @@ constants.update({
          (0, 255, 0),
     ]
 })
-player_xp_multiplier = 1.0
 upgrade_options = [
     "HP +20%",
     "Bullet SPD 10%",
@@ -239,6 +235,11 @@ class Player(pygame.sprite.Sprite):
         self.mask = player_mask
         self.speed = constants['PLAYER_SPEED']
         self.health = constants['PLAYER_HEALTH']
+        self.level = 1
+        self.xp = 0
+        self.xp_multiplier = 1.0
+        self.score = 0
+        self.total_kills = 0
         self.shake_offset = (1, 1)
         self.shake_duration = 0.0
         self.shake_intensity = 0
@@ -341,6 +342,17 @@ class Player(pygame.sprite.Sprite):
             self.shake_duration -= 1
         else:
             self.shake_offset = (0, 0)
+
+    def update_level_and_xp(self, xp_gained):
+        global show_upgrade_panel
+
+        self.xp += xp_gained
+
+        while self.xp >= level_thresholds[self.level + 1]:
+            self.level += 1
+            self.xp -= level_thresholds[player.level]
+            show_upgrade_panel = True
+
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, angle, speed, penetration, damage, blast_radius=0):
@@ -584,14 +596,13 @@ class Zombie(pygame.sprite.Sprite):
         if not self.fading:
             self.fading = True
             self.fade_start_time = pygame.time.get_ticks()
-            constants['SCORE'] += self.get_score_value()
-            bloodline_xp_gained = self.blood()
-        # Remove this line: constants['BLOOD'] += bloodline_xp_gained
-            constants['TOTAL_KILLS'] += 1
+            self.player.total_kills += 1
+            score_gained = self.get_score_value()
+            self.player.score += score_gained
+            player.update_level_and_xp(score_gained + self.blood())
+
             energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
             energy_orbs.add(energy_orb)
-            total_xp_gained = self.get_score_value() + bloodline_xp_gained
-            update_player_level_and_xp(total_xp_gained)
 
     def flash(self):
         flash_duration = 100
@@ -737,8 +748,6 @@ def render_upgrade_panel():
 
 
 def apply_upgrade(index):
-    global player_xp_multiplier  # Make sure this is declared as a global variable
-
     if index == 0:  # Increase Health
         player.health *= 1.1
     elif index == 1:  # Increase Speed
@@ -765,7 +774,7 @@ def apply_upgrade(index):
             for weapon in category.weapons:
                 weapon.spread_angle *= 0.9
     elif index == 7:  # Increase XP Gain
-        player_xp_multiplier *= 100
+        player.xp_multiplier *= 100
     elif index == 8:  # Unlock Random Weapon
         unlock_random_weapon()
 
@@ -861,10 +870,7 @@ def spawn_zombie(zombie_type):
     zombies.add(zombie)
 
 def restart_game():
-    global player, all_sprites, projectiles, zombies, blood_particles, small_circles, current_wave, player_level, player_xp
-    constants['SCORE'] = 0
-    constants['BLOOD'] = 0
-    constants['TOTAL_KILLS'] = 0 
+    global all_sprites, projectiles, zombies, blood_particles, small_circles, current_wave
     current_wave = 0
     player.health = constants['PLAYER_HEALTH']
     player.rect.center = (constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
@@ -877,8 +883,11 @@ def restart_game():
     all_sprites.add(player)
     floating_texts.empty()
     player.set_initial_weapon()
-    player_level = 1
-    player_xp = 0
+    player.score = 0
+    player.total_kills = 0
+    player.xp = 0
+    player.level = 1
+
 
     for category in weapon_categories:
         for weapon in category.weapons:
@@ -889,25 +898,16 @@ def restart_game():
     for category in weapon_categories:
         category.current_index = category.find_first_unlocked_weapon()
 
-def update_player_level_and_xp(xp_gained):
-    global player_level, player_xp, show_upgrade_panel
-
-    player_xp += xp_gained
-
-    while player_xp >= level_thresholds[player_level + 1]:
-        player_level += 1
-        player_xp -= level_thresholds[player_level]
-        show_upgrade_panel = True 
 
 def draw_progress_bar(surface, x, y, width, height, progress, color):
     bar_rect = pygame.Rect(x, y, width, height)
     fill_rect = pygame.Rect(x, y, int(width * progress), height)
     pygame.draw.rect(surface, constants['WHITE'], bar_rect, 2)
     pygame.draw.rect(surface, color, fill_rect)
-    level_text = font.render(f"Brain Power: {player_level}", True, constants['WHITE'])
+    level_text = font.render(f'Brain Power: {player.level}', True, constants['WHITE'])
     level_text_rect = level_text.get_rect(midleft=(x + 10, y + height // 2))
     surface.blit(level_text, level_text_rect)
-    xp_text = font.render(f"{player_xp}/{level_thresholds[player_level + 1]}", True, constants['WHITE'])
+    xp_text = font.render(f"{player.xp}/{level_thresholds[player.level + 1]}", True, constants['WHITE'])
     xp_text_rect = xp_text.get_rect(midright=(x + width - 10, y + height // 2))
     surface.blit(xp_text, xp_text_rect)
 
@@ -1061,13 +1061,10 @@ start_time = 0
 last_spawn_time = 0
 wave_start_time = 0
 wave_delay_active = False
-TOTAL_KILLS = 0
-player_level = 1
-player_xp = 0
 auto_firing = False
 orb_image = pygame.transform.scale(orb_image, (20, 20))
 show_upgrade_panel = False
-player_xp_multiplier = 1.0
+
 while running:
     adjusted_mouse_pos = get_adjusted_mouse_pos(camera)
     keys = pygame.key.get_pressed()
@@ -1176,7 +1173,7 @@ while running:
         for orb in energy_orbs:
             if pygame.sprite.collide_rect(player, orb):
                 orb.kill()
-                update_player_level_and_xp(1)
+                player.update_level_and_xp(1)
 
         if chest and pygame.sprite.collide_rect(player, chest):
             chest.open()
@@ -1277,7 +1274,7 @@ while running:
         screen.blit(cropped_image, (0, 0))
         screen.blit(CURSOR_IMG, cursor_rect)
 
-        progress = player_xp / level_thresholds[player_level + 1]
+        progress = player.xp / level_thresholds[player.level + 1]
         draw_progress_bar(screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, constants['RED'])
 
         for orb in energy_orbs:
@@ -1313,10 +1310,12 @@ while running:
         elapsed_time = (current_time - start_time) / 1000
         render_text(f"Time: {elapsed_time:.2f} s", font, constants['WHITE'], 475, 10)
         render_text(f"Wave: {current_wave}", font, constants['WHITE'], 700, 10)
-        render_text(f"Score: {constants['SCORE']}", scorefont, constants['WHITE'], 875, 10)
+        render_text(f"Score: {player.score}", scorefont, constants['WHITE'], 875, 10)
         render_text(f"FPS: {int(clock.get_fps())}", fps_font, constants['GAMMA'], constants['WIDTH'] - 140, 10)
-        render_text(f"Total Kills: {constants['TOTAL_KILLS']} (Remaining: {len(zombies)})", font, constants['WHITE'], 10, 10)
-        
+        render_text(
+            f"Total Kills: {player.total_kills} (Remaining: {len(zombies)})", font, constants['WHITE'], 10, 10
+        )
+
         version_text = "Alpha 1.02"
         version_surface = version_font.render(version_text, True, constants['WHITE'])
         version_rect = version_surface.get_rect()
