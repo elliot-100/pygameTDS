@@ -2,7 +2,6 @@ import pygame
 import sys
 import math
 import random
-from pygame.math import Vector2
 import heapq
 from collections import defaultdict
 
