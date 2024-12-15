@@ -2,7 +2,6 @@ import pygame
 import sys
 import math
 import random
-from pygame.math import Vector2
 import heapq
 from collections import defaultdict
 
@@ -175,39 +174,6 @@ class WeaponCategory:
     def has_unlocked_weapon(self):
         return any(not weapon.locked for weapon in self.weapons)
 
-pistol = WeaponCategory("pistols", [
-    Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
-])
-    # Rifles
-smg = WeaponCategory("SMG", [
-    Weapon("Skorpian(SMG)", 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
-])
-
-rifles = WeaponCategory("Rifles", [
-    Weapon("SVT-40(RIFLE)", 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
-])
-
-bolt_action = WeaponCategory("Bolt Action", [
-    Weapon("Mosin(BOLT)", 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
-])
-
-assault_rifles = WeaponCategory("Assault Rifle", [
-    Weapon("AK-47(AR)", 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
-])
-
-lmgs = WeaponCategory("LMG", [
-    Weapon("PKM(LMG)", 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
-])
-
-shotguns = WeaponCategory("Shotgun", [
-    Weapon("Mossberg 500(SG)", 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
-    Weapon("Remington 870(SG)", 20, 1100, 28, 0.55, 6, 2600, 3, locked=True),
-])
-launchers = WeaponCategory("Launchers", [
-    Weapon("RPG-7(BLAST)", 20, 5000, 100, 0.1, 1, 5000, 0, locked=True, blast_radius=50),
-])
-
-weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
 
 class Camera:
     def __init__(self, width, height):
@@ -253,16 +219,6 @@ class MuzzleFlash(pygame.sprite.Sprite):
     def update(self):
         if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
             self.kill()
-
-        self.weapon_categories = weapon_categories
-        self.current_category_index = self.find_first_category_with_unlocked_weapon()
-        self.current_weapon = self.get_current_weapon()
-
-    def find_first_category_with_unlocked_weapon(self):
-        for i, category in enumerate(self.weapon_categories):
-            if category.has_unlocked_weapon():
-                return i
-        return 0  
 
     def get_current_weapon(self):
         category = self.weapon_categories[self.current_category_index]
@@ -506,7 +462,6 @@ class Zombie(pygame.sprite.Sprite):
                     direction = direction.normalize() * self.speed
                     self.rect.x += direction.x
                     self.rect.y += direction.y
-                tolerance = 2
                 if abs(self.rect.centerx - next_pos[0] * 32) < self.speed and abs(self.rect.centery - next_pos[1] * 32) < self.speed:
                     self.path.pop(0)
 
@@ -710,22 +665,6 @@ class BloodParticle(pygame.sprite.Sprite):
         else:
             self.kill()
 
-class SmallCircle(pygame.sprite.Sprite):
-    def __init__(self, pos, angle, speed):
-        super().__init__()
-        self.image = pygame.Surface((0.1, 2.0))
-        self.image.fill(constants['RED'])
-        self.rect = self.image.get_rect(center=pos)
-        self.speed = speed
-        self.dx = self.speed * math.cos(angle)
-        self.dy = self.speed * math.sin(angle)
-        self.spawn_time = pygame.time.get_ticks()
-
-    def update(self):
-        self.rect.x += self.dx
-        self.rect.y += self.dy
-        if pygame.time.get_ticks() - self.spawn_time > constants['SMALL_CIRCLE_LIFETIME']:
-            self.kill()
 
 
 class FloatingText(pygame.sprite.Sprite):
@@ -766,40 +705,6 @@ def get_neighbors(pos, grid_size):
     x, y = pos
     neighbors = [(x+1, y), (x-1, y), (x, y+1), (x, y-1)]
     return [(nx, ny) for nx, ny in neighbors if 0 <= nx < grid_size[0] and 0 <= ny < grid_size[1]]
-
-screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
-pygame.display.set_caption("TBBP Game")
-
-font1 = pygame.font.Font('ps2.ttf', 15)
-font = pygame.font.Font('ps2.ttf', 15)
-scorefont = pygame.font.Font('ps2.ttf', 20)
-bloodfont = pygame.font.Font('bloody.ttf', 20)
-fps_font = pygame.font.Font('ps2.ttf', 20)
-fps_color = constants['GAMMA']
-clock = pygame.time.Clock()
-
-player_image = pygame.image.load('player.png').convert_alpha()
-player_mask = pygame.mask.from_surface(player_image)
-zombie_images = [pygame.image.load(f'zombie{i}.png').convert_alpha() for i in range(1, 12)]
-background_image = pygame.image.load("zombies.png").convert()
-chest_image = pygame.image.load('chest.png').convert_alpha()
-orb_image = pygame.image.load('orb.png').convert_alpha()
-
-all_zombies_group = pygame.sprite.Group()
-weapon_font = pygame.font.Font('ps2.ttf', 17)
-version_font = pygame.font.Font('ps2.ttf', 15)
-muzzle_flashes = pygame.sprite.Group()
-
-pygame.mixer.init()
-fire_sound_ak47 = pygame.mixer.Sound('bullet.mp3')
-fire_sound_beretta = pygame.mixer.Sound('glock.mp3')
-fire_sound_mossberg = pygame.mixer.Sound('mossberg.mp3')
-hit_sound = pygame.mixer.Sound('splat.mp3')
-reload_sound = pygame.mixer.Sound('reload.mp3')
-fire_sound_mosin = pygame.mixer.Sound('mosin.mp3')
-firing_sound_mosin = pygame.mixer.Sound('mosinshot.mp3')
-fire_sound_PKM = pygame.mixer.Sound('pkm.mp3')
-fire_sound_skorpian = pygame.mixer.Sound('skorpian.mp3')
 
 def render_upgrade_panel():
     overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']))
@@ -860,46 +765,6 @@ def apply_upgrade(index):
 
     print(f"Applied upgrade: {upgrade_options[index]}")
 
-def create_weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius=0):
-    return Weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
-
-#projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
-pistol = WeaponCategory("pistols", [
-    Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
-])
-    # Rifles
-smg = WeaponCategory("SMG", [
-    Weapon("Skorpian(SMG)", 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
-])
-
-rifles = WeaponCategory("Rifles", [
-    Weapon("SVT-40(RIFLE)", 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
-])
-
-bolt_action = WeaponCategory("Bolt Action", [
-    Weapon("Mosin(BOLT)", 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
-])
-
-assault_rifles = WeaponCategory("Assault Rifle", [
-    Weapon("AK-47(AR)", 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
-])
-
-lmgs = WeaponCategory("LMG", [
-    Weapon("PKM(LMG)", 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
-])
-
-shotguns = WeaponCategory("Shotgun", [
-    Weapon("Mossberg 500(SG)", 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
-    Weapon("Remington 870(SG)", 20, 1100, 28, 0.55, 6, 2600, 3, locked=True),
-])
-launchers = WeaponCategory("Launchers", [
-    Weapon("RPG-7(BLAST)", 20, 5000, 100, 0.1, 1, 5000, 0, locked=True, blast_radius=50),
-])
-
-
-weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
-
-camera = Camera(constants['WIDTH'], constants['HEIGHT'])
 
 def display_damage_text(damage, position, color):
     damage_text = font.render(f"-{int(damage)}", True, color)
@@ -913,19 +778,6 @@ def render_text(text, font, color, x, y):
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, (x, y))
 
-
-blood_particles = pygame.sprite.Group()
-small_circles = pygame.sprite.Group()
-player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
-all_sprites = pygame.sprite.Group(player)
-projectiles = pygame.sprite.Group()
-zombies = pygame.sprite.Group()
-floating_texts = pygame.sprite.Group()
-energy_orbs = pygame.sprite.Group()
-SPAWN_ZOMBIE = pygame.USEREVENT + 1
-pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
-current_wave = 1
-zombies_to_spawn = []
 
 def manage_waves():
     global current_wave, zombies_to_spawn, wave_start_time, chest
@@ -1084,11 +936,101 @@ def set_initial_weapon(self):
                 weapon.locked = True
     self.current_weapon = first_pistol
 
-    
-    for weapon in weapon_constants:
-        current_ammo[weapon] = weapon_constants[weapon]['AMMO']
-        reloading[weapon] = False
-        last_fired_time[weapon] = 0
+def get_adjusted_mouse_pos(camera):
+    mouse_pos = pygame.mouse.get_pos()
+    return (mouse_pos[0] - camera.rect.x, mouse_pos[1] - camera.rect.y)
+
+
+def create_projectile(pellet_angle):
+    return Projectile(
+        player.rect.centerx, player.rect.centery, pellet_angle,
+        player.current_weapon.projectile_speed, player.current_weapon.penetration,
+        player.current_weapon.damage, blast_radius=player.current_weapon.blast_radius
+    )
+
+screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
+pygame.display.set_caption("TBBP Game")
+
+font1 = pygame.font.Font('ps2.ttf', 15)
+font = pygame.font.Font('ps2.ttf', 15)
+scorefont = pygame.font.Font('ps2.ttf', 20)
+bloodfont = pygame.font.Font('bloody.ttf', 20)
+fps_font = pygame.font.Font('ps2.ttf', 20)
+fps_color = constants['GAMMA']
+clock = pygame.time.Clock()
+
+player_image = pygame.image.load('player.png').convert_alpha()
+player_mask = pygame.mask.from_surface(player_image)
+zombie_images = [pygame.image.load(f'zombie{i}.png').convert_alpha() for i in range(1, 12)]
+background_image = pygame.image.load("zombies.png").convert()
+chest_image = pygame.image.load('chest.png').convert_alpha()
+orb_image = pygame.image.load('orb.png').convert_alpha()
+
+all_zombies_group = pygame.sprite.Group()
+weapon_font = pygame.font.Font('ps2.ttf', 17)
+version_font = pygame.font.Font('ps2.ttf', 15)
+muzzle_flashes = pygame.sprite.Group()
+
+pygame.mixer.init()
+fire_sound_ak47 = pygame.mixer.Sound('bullet.mp3')
+fire_sound_beretta = pygame.mixer.Sound('glock.mp3')
+fire_sound_mossberg = pygame.mixer.Sound('mossberg.mp3')
+hit_sound = pygame.mixer.Sound('splat.mp3')
+reload_sound = pygame.mixer.Sound('reload.mp3')
+fire_sound_mosin = pygame.mixer.Sound('mosin.mp3')
+firing_sound_mosin = pygame.mixer.Sound('mosinshot.mp3')
+fire_sound_PKM = pygame.mixer.Sound('pkm.mp3')
+fire_sound_skorpian = pygame.mixer.Sound('skorpian.mp3')
+
+pistol = WeaponCategory("pistols", [
+    Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
+])
+    # Rifles
+smg = WeaponCategory("SMG", [
+    Weapon("Skorpian(SMG)", 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
+])
+
+rifles = WeaponCategory("Rifles", [
+    Weapon("SVT-40(RIFLE)", 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
+])
+
+bolt_action = WeaponCategory("Bolt Action", [
+    Weapon("Mosin(BOLT)", 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
+])
+
+assault_rifles = WeaponCategory("Assault Rifle", [
+    Weapon("AK-47(AR)", 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
+])
+
+lmgs = WeaponCategory("LMG", [
+    Weapon("PKM(LMG)", 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
+])
+
+shotguns = WeaponCategory("Shotgun", [
+    Weapon("Mossberg 500(SG)", 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
+    Weapon("Remington 870(SG)", 20, 1100, 28, 0.55, 6, 2600, 3, locked=True),
+])
+launchers = WeaponCategory("Launchers", [
+    Weapon("RPG-7(BLAST)", 20, 5000, 100, 0.1, 1, 5000, 0, locked=True, blast_radius=50),
+])
+
+
+weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
+
+camera = Camera(constants['WIDTH'], constants['HEIGHT'])
+
+blood_particles = pygame.sprite.Group()
+small_circles = pygame.sprite.Group()
+player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+all_sprites = pygame.sprite.Group(player)
+projectiles = pygame.sprite.Group()
+zombies = pygame.sprite.Group()
+floating_texts = pygame.sprite.Group()
+energy_orbs = pygame.sprite.Group()
+SPAWN_ZOMBIE = pygame.USEREVENT + 1
+pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
+current_wave = 1
+zombies_to_spawn = []
 
 CURSOR_IMG = pygame.Surface((40, 40), pygame.SRCALPHA)
 pygame.draw.circle(CURSOR_IMG, pygame.Color('white'), (20, 20), 20, 2)
@@ -1120,10 +1062,6 @@ auto_firing = False
 orb_image = pygame.transform.scale(orb_image, (20, 20))
 show_upgrade_panel = False
 player_xp_multiplier = 1.0
-def get_adjusted_mouse_pos(camera):
-    mouse_pos = pygame.mouse.get_pos()
-    return (mouse_pos[0] - camera.rect.x, mouse_pos[1] - camera.rect.y)
-
 while running:
     adjusted_mouse_pos = get_adjusted_mouse_pos(camera)
     keys = pygame.key.get_pressed()
@@ -1256,13 +1194,6 @@ while running:
                     flash_pos = (player.rect.centerx + math.cos(angle) * 30, player.rect.centery + math.sin(angle) * 30)
                     muzzle_flash = MuzzleFlash(flash_pos, angle)
                     muzzle_flashes.add(muzzle_flash)
-
-                    def create_projectile(pellet_angle):
-                        return Projectile(
-                            player.rect.centerx, player.rect.centery, pellet_angle,
-                            player.current_weapon.projectile_speed, player.current_weapon.penetration,
-                            player.current_weapon.damage, blast_radius=player.current_weapon.blast_radius
-                        )
 
                     if 'SG' in player.current_weapon.name:  
                         for _ in range(10):
