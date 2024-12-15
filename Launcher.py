@@ -6,6 +6,11 @@ import heapq
 from collections import defaultdict
 from pathlib import Path
 
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    BASE_DIR = Path(sys._MEIPASS)
+else:
+    BASE_DIR = Path(__file__).parent
+
 pygame.init()
 
 level_thresholds = {
@@ -671,7 +676,7 @@ class BloodParticle(pygame.sprite.Sprite):
 class FloatingText(pygame.sprite.Sprite):
     def __init__(self, x, y, text, color):
         super().__init__()
-        self.font = pygame.font.Font('./fonts/bloody.ttf', 20)
+        self.font = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
         self.text = str(text)
         self.color = color
         self.outline_color = constants['BLACK']
@@ -952,36 +957,36 @@ def create_projectile(pellet_angle):
 screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
 pygame.display.set_caption("TBBP Game")
 
-font1 = pygame.font.Font('./fonts/ps2.ttf', 15)
-font = pygame.font.Font('./fonts/ps2.ttf', 15)
-scorefont = pygame.font.Font('./fonts/ps2.ttf', 20)
-bloodfont = pygame.font.Font('./fonts/bloody.ttf', 20)
-fps_font = pygame.font.Font('./fonts/ps2.ttf', 20)
+font1 = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
+font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
+scorefont = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
+bloodfont = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
+fps_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
 fps_color = constants['GAMMA']
 clock = pygame.time.Clock()
 
-player_image = pygame.image.load('./assets/player.png').convert_alpha()
+player_image = pygame.image.load(BASE_DIR / 'assets/player.png').convert_alpha()
 player_mask = pygame.mask.from_surface(player_image)
-zombie_images = [pygame.image.load(f'./assets/zombie{i}.png').convert_alpha() for i in range(1, 12)]
-background_image = pygame.image.load("./assets/zombies.png").convert()
-chest_image = pygame.image.load('./assets/chest.png').convert_alpha()
-orb_image = pygame.image.load('./assets/orb.png').convert_alpha()
+zombie_images = [pygame.image.load(BASE_DIR / f'assets/zombie{i}.png').convert_alpha() for i in range(1, 12)]
+background_image = pygame.image.load(BASE_DIR / 'assets/zombies.png').convert()
+chest_image = pygame.image.load(BASE_DIR / 'assets/chest.png').convert_alpha()
+orb_image = pygame.image.load(BASE_DIR / 'assets/orb.png').convert_alpha()
 
 all_zombies_group = pygame.sprite.Group()
-weapon_font = pygame.font.Font('./fonts/ps2.ttf', 17)
-version_font = pygame.font.Font('./fonts/ps2.ttf', 15)
+weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
+version_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
 muzzle_flashes = pygame.sprite.Group()
 
 pygame.mixer.init()
-fire_sound_ak47 = pygame.mixer.Sound('./sfx/bullet.mp3')
-fire_sound_beretta = pygame.mixer.Sound('./sfx/glock.mp3')
-fire_sound_mossberg = pygame.mixer.Sound('./sfx/mossberg.mp3')
-hit_sound = pygame.mixer.Sound('./sfx/splat.mp3')
-reload_sound = pygame.mixer.Sound('./sfx/reload.mp3')
-fire_sound_mosin = pygame.mixer.Sound('./sfx/mosin.mp3')
-firing_sound_mosin = pygame.mixer.Sound('./sfx/mosinshot.mp3')
-fire_sound_PKM = pygame.mixer.Sound('./sfx/pkm.mp3')
-fire_sound_skorpian = pygame.mixer.Sound('./sfx/skorpian.mp3')
+fire_sound_ak47 = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
+fire_sound_beretta = pygame.mixer.Sound(BASE_DIR / 'sfx/glock.mp3')
+fire_sound_mossberg = pygame.mixer.Sound(BASE_DIR / 'sfx/mossberg.mp3')
+hit_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/splat.mp3')
+reload_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/reload.mp3')
+fire_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosin.mp3')
+firing_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosinshot.mp3')
+fire_sound_PKM = pygame.mixer.Sound(BASE_DIR / 'sfx/pkm.mp3')
+fire_sound_skorpian = pygame.mixer.Sound(BASE_DIR / 'sfx/skorpian.mp3')
 
 pistol = WeaponCategory("pistols", [
     Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
