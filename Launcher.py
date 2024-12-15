@@ -220,16 +220,6 @@ class MuzzleFlash(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
             self.kill()
 
-        self.weapon_categories = weapon_categories
-        self.current_category_index = self.find_first_category_with_unlocked_weapon()
-        self.current_weapon = self.get_current_weapon()
-
-    def find_first_category_with_unlocked_weapon(self):
-        for i, category in enumerate(self.weapon_categories):
-            if category.has_unlocked_weapon():
-                return i
-        return 0  
-
     def get_current_weapon(self):
         category = self.weapon_categories[self.current_category_index]
         return category.current_weapon()
