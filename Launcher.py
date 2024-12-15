@@ -965,12 +965,12 @@ fps_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
 fps_color = constants['GAMMA']
 clock = pygame.time.Clock()
 
-player_image = pygame.image.load(BASE_DIR / 'assets/player.png').convert_alpha()
+player_image = pygame.image.load(BASE_DIR / 'images/player.png').convert_alpha()
 player_mask = pygame.mask.from_surface(player_image)
-zombie_images = [pygame.image.load(BASE_DIR / f'assets/zombie{i}.png').convert_alpha() for i in range(1, 12)]
-background_image = pygame.image.load(BASE_DIR / 'assets/zombies.png').convert()
-chest_image = pygame.image.load(BASE_DIR / 'assets/chest.png').convert_alpha()
-orb_image = pygame.image.load(BASE_DIR / 'assets/orb.png').convert_alpha()
+zombie_images = [pygame.image.load(BASE_DIR / f'images/zombie{i}.png').convert_alpha() for i in range(1, 12)]
+background_image = pygame.image.load(BASE_DIR / 'images/zombies.png').convert()
+chest_image = pygame.image.load(BASE_DIR / 'images/chest.png').convert_alpha()
+orb_image = pygame.image.load(BASE_DIR / 'images/orb.png').convert_alpha()
 
 all_zombies_group = pygame.sprite.Group()
 weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
