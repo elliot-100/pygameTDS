@@ -982,7 +982,6 @@ firing_sound_mosin = pygame.mixer.Sound('mosinshot.mp3')
 fire_sound_PKM = pygame.mixer.Sound('pkm.mp3')
 fire_sound_skorpian = pygame.mixer.Sound('skorpian.mp3')
 
-#projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
 pistol = WeaponCategory("pistols", [
     Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
 ])
