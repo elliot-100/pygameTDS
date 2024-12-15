@@ -472,7 +472,6 @@ class Zombie(pygame.sprite.Sprite):
                     direction = direction.normalize() * self.speed
                     self.rect.x += direction.x
                     self.rect.y += direction.y
-                tolerance = 2
                 if abs(self.rect.centerx - next_pos[0] * 32) < self.speed and abs(self.rect.centery - next_pos[1] * 32) < self.speed:
                     self.path.pop(0)
 
@@ -776,8 +775,6 @@ def apply_upgrade(index):
 
     print(f"Applied upgrade: {upgrade_options[index]}")
 
-def create_weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius=0):
-    return Weapon(name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius)
 
 def display_damage_text(damage, position, color):
     damage_text = font.render(f"-{int(damage)}", True, color)
