@@ -676,22 +676,6 @@ class BloodParticle(pygame.sprite.Sprite):
         else:
             self.kill()
 
-class SmallCircle(pygame.sprite.Sprite):
-    def __init__(self, pos, angle, speed):
-        super().__init__()
-        self.image = pygame.Surface((0.1, 2.0))
-        self.image.fill(constants['RED'])
-        self.rect = self.image.get_rect(center=pos)
-        self.speed = speed
-        self.dx = self.speed * math.cos(angle)
-        self.dy = self.speed * math.sin(angle)
-        self.spawn_time = pygame.time.get_ticks()
-
-    def update(self):
-        self.rect.x += self.dx
-        self.rect.y += self.dy
-        if pygame.time.get_ticks() - self.spawn_time > constants['SMALL_CIRCLE_LIFETIME']:
-            self.kill()
 
 
 class FloatingText(pygame.sprite.Sprite):
