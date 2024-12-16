@@ -207,7 +207,7 @@ class Camera:
         x = -target.rect.centerx + int(constants['WIDTH'] / 2)
         y = -target.rect.centery + int(constants['HEIGHT'] / 2)
 
-        x = min(0, x)  
+        x = min(0, x)
         y = min(0, y)
         x = max(-(constants['VIRTUAL_WIDTH'] - constants['WIDTH']), x)
         y = max(-(constants['VIRTUAL_HEIGHT'] - constants['HEIGHT']), y)
@@ -472,14 +472,16 @@ class Zombie(pygame.sprite.Sprite):
         self.show_health_bar = False
         self.last_damage_time = 0
         self.last_groan_time = pygame.time.get_ticks()
-        self.next_groan_interval = random.randint(1000, 30000)  
-        
+        self.next_groan_interval = random.randint(1000, 30000)
+
         self.groan_sounds = [
             pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan1.mp3'),
             pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan2.mp3'),
             pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan3.mp3')
         ]
-    
+        self.flash_active = False
+        self.flash_start_time = 0
+
     def get_class_name(self, zombie_class):
         for name, cls in vars(ZombieClass).items():
             if isinstance(cls, dict) and cls == zombie_class:
@@ -520,12 +522,12 @@ class Zombie(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if current_time - self.last_groan_time > self.next_groan_interval:
             self.play_random_groan()
-    
+
     def play_random_groan(self):
         if not self.killed and not self.fading:
             groan_sound = random.choice(self.groan_sounds)
             groan_sound.play()
-            
+
             self.last_groan_time = pygame.time.get_ticks()
             self.next_groan_interval = random.randint(1000, 30000)
 
@@ -705,7 +707,7 @@ class BloodParticle(pygame.sprite.Sprite):
             self.image.set_alpha(self.alpha)
         else:
             self.kill()
-            
+
 
 class FloatingText(pygame.sprite.Sprite):
     def __init__(self, x, y, text, color):
@@ -729,10 +731,10 @@ class FloatingText(pygame.sprite.Sprite):
         outline_rect = outline_surface.get_rect()
         self.image = pygame.Surface((outline_rect.width + self.outline_width * 2, 
                                      outline_rect.height + self.outline_width * 2), pygame.SRCALPHA)
-        
+
         for dx, dy in [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (1, 0), (0, -1), (0, 1)]:
             self.image.blit(outline_surface, (self.outline_width + dx, self.outline_width + dy))
-        
+
         text_surface = self.font.render(self.text, True, self.color)
         self.image.blit(text_surface, (self.outline_width, self.outline_width))
 
@@ -782,12 +784,12 @@ def render_upgrade_panel():
         x = panel_x + (i % 3) * 300 + 25
         y = panel_y + (i // 3) * 150
         rect = pygame.Rect(x, y, 250, 100)
-        
+
         # Create semi-transparent option boxes with alpha channel
         option_surface = pygame.Surface((250, 100), pygame.SRCALPHA)
         option_surface.fill((0, 0, 0, 150))  # Black with alpha=150
         screen.blit(option_surface, (x, y))
-        
+
         pygame.draw.rect(screen, constants['WHITE'], rect, 2)
         render_text(option, font, constants['WHITE'], x + 10, y + 40)
         option_rects.append(rect)
@@ -796,34 +798,34 @@ def render_upgrade_panel():
 
 
 def apply_upgrade(index):
-    if index == 0:  
+    if index == 0:
         player.health *= 1.1
-    elif index == 1:  
+    elif index == 1:
         player.speed *= 1.1
-    elif index == 2:  
+    elif index == 2:
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.damage *= 1.1
-    elif index == 3:  
+    elif index == 3:
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.reload_time *= 0.9
-    elif index == 4:  
+    elif index == 4:
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.max_ammo = int(weapon.max_ammo * 1.2)
                 weapon.ammo = weapon.max_ammo
-    elif index == 5:  
+    elif index == 5:
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.fire_rate *= 0.9
-    elif index == 6:  
+    elif index == 6:
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.spread_angle *= 0.9
-    elif index == 7:  
+    elif index == 7:
         player.xp_multiplier *= 100
-    elif index == 8:  
+    elif index == 8:
         unlock_random_weapon()
 
     print(f"Applied upgrade: {upgrade_options[index]}")
@@ -1128,7 +1130,7 @@ while running:
         elif event.type == pygame.MOUSEMOTION:
             cursor_rect.center = event.pos
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 3:  
+            if event.button == 3:
                 auto_firing = not auto_firing
                 print("Auto-firing mode enabled" if auto_firing else "Auto-firing mode disabled")
             elif event.button == 1 and show_upgrade_panel:
@@ -1223,16 +1225,16 @@ while running:
             image_rect.topleft = (bg_x, bg_y)
             cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
             screen.blit(cropped_image, (0, 0))
-            
+
             # Then render all game elements
             for sprite in all_sprites:
                 screen.blit(sprite.image, camera.apply(sprite))
-            
+
             # Now add the semi-transparent overlay
             overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 75))  # Adjust alpha value (128) for desired transparency
             screen.blit(overlay, (0, 0))
-            
+
             option_rects = render_upgrade_panel()
             screen.blit(CURSOR_IMG, cursor_rect)
             pygame.display.flip()
@@ -1283,7 +1285,7 @@ while running:
                         'Skorpian(SMG)': fire_sound_skorpian,
                         'AK-47(AR)': fire_sound_ak47
                        # 'SVT-40(RIFLE)': fire_sound_svt,
-                       # 'RPG-7(BLAST)': fire_sound_rpg 
+                       # 'RPG-7(BLAST)': fire_sound_rpg
                     }.get(player.current_weapon.name, None)
                     
                     if weapon_sound:
