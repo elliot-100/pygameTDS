@@ -601,23 +601,6 @@ class Zombie(pygame.sprite.Sprite):
             energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
             energy_orbs.add(energy_orb)
 
-    def flash(self):
-        flash_duration = 100
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_damage_time < flash_duration:
-            self.image.fill((255, 0, 0), special_flags=pygame.BLEND_MULT)
-        else:
-            self.image = self.original_image.copy()
-
-    def fade_out(self):
-        fade_duration = 500
-        elapsed_time = pygame.time.get_ticks() - self.fade_start_time
-        if elapsed_time < fade_duration:
-            alpha = 255 - int((elapsed_time / fade_duration) * 255)
-            self.image.set_alpha(alpha)
-        else:
-            self.kill()
-
     def get_score_value(self):
         score_table = {
             'a': 5, 'b': 10, 'c': 15, 'd': 20, 'e': 25, 'f': 30, 'g': 35, 'h': 40, 'i': 45, 'j': 50, 'k': 55
