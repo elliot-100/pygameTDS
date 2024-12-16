@@ -964,11 +964,11 @@ pygame.init()
 
 # - Fonts
 base_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
-scorefont = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
-bloodfont = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
-fps_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
+version_font = base_font
+score_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
+fps_font = score_font
+blood_font = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
 weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
-version_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
 
 # - Display, images
 screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
@@ -1283,12 +1283,12 @@ while running:
                     game_state = 'main_menu'
 
         elapsed_time = (current_time - start_time) / 1000
-        render_text(f"Time: {elapsed_time:.2f} s", font, constants['WHITE'], 475, 10)
-        render_text(f"Wave: {current_wave}", font, constants['WHITE'], 700, 10)
-        render_text(f"Score: {player.score}", scorefont, constants['WHITE'], 875, 10)
+        render_text(f"Time: {elapsed_time:.2f} s", base_font, constants['WHITE'], 475, 10)
+        render_text(f"Wave: {current_wave}", base_font, constants['WHITE'], 700, 10)
+        render_text(f"Score: {player.score}", score_font, constants['WHITE'], 875, 10)
         render_text(f"FPS: {int(clock.get_fps())}", fps_font, constants['GAMMA'], constants['WIDTH'] - 140, 10)
         render_text(
-            f"Total Kills: {player.total_kills} (Remaining: {len(zombies)})", font, constants['WHITE'], 10, 10
+            f"Total Kills: {player.total_kills} (Remaining: {len(zombies)})", base_font, constants['WHITE'], 10, 10
         )
 
         version_text = "Alpha 1.02"
@@ -1300,8 +1300,8 @@ while running:
         player_pos = camera.apply(player).topleft  
         weapon_text = f"{player.current_weapon.name}"
         ammo_text = f"| {player.current_weapon.ammo} |"
-        weapon_text_surface = font1.render(weapon_text, True, constants['WHITE'])
-        ammo_text_surface = font1.render(ammo_text, True, constants['YELLOW'])
+        weapon_text_surface = base_font.render(weapon_text, True, constants['WHITE'])
+        ammo_text_surface = base_font.render(ammo_text, True, constants['YELLOW'])
         
         weapon_text_pos = (player_pos[0], player_pos[1] - -60) 
         ammo_text_pos = (player_pos[0], player_pos[1] - -80)  
@@ -1310,28 +1310,28 @@ while running:
         screen.blit(ammo_text_surface, ammo_text_pos)
         
         if auto_firing:
-            auto_fire_text = font1.render("Auto-Fire: ON", True, constants['YELLOW'])
+            auto_fire_text = base_font.render("Auto-Fire: ON", True, constants['YELLOW'])
             auto_fire_text_pos = (player_pos[0], player_pos[1] - -100) 
             screen.blit(auto_fire_text, auto_fire_text_pos)
 
         player.draw_health_bar(camera)
         if reloading[player.current_weapon.name]:
             reload_text = f"Reloading..."
-            reload_text_surface = font1.render(reload_text, True, constants['YELLOW'])
+            reload_text_surface = base_font.render(reload_text, True, constants['YELLOW'])
             reload_text_pos = (player_pos[0], player_pos[1] - -120)  
             screen.blit(reload_text_surface, reload_text_pos)
     elif game_state == 'main_menu':
         screen.fill(constants['BLACK'])
-        render_text("The Black Box Project", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 - 150)
-        render_text("Press ENTER to Play", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 - 50)
-        render_text("Press H for How to Play", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2)
-        render_text("Press C for Credits", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 + 50)
-        render_text("Press ESC to Quit", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 + 100)
+        render_text("The Black Box Project", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 - 150)
+        render_text("Press ENTER to Play", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 - 50)
+        render_text("Press H for How to Play", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2)
+        render_text("Press C for Credits", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 + 50)
+        render_text("Press ESC to Quit", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] // 2 + 100)
     elif game_state == 'paused':
         screen.fill(constants['BLACK'])
-        render_text("Game Paused", font, constants['WHITE'], constants['WIDTH'] // 2 - 150, constants['HEIGHT'] // 2 - 100)
-        render_text("Press ENTER to Resume", font, constants['WHITE'], constants['WIDTH'] // 2 - 250, constants['HEIGHT'] // 2)
-        render_text("Press ESC to Main Menu", font, constants['WHITE'], constants['WIDTH'] // 2 - 250, constants['HEIGHT'] // 2 + 50)
+        render_text("Game Paused", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 150, constants['HEIGHT'] // 2 - 100)
+        render_text("Press ENTER to Resume", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 250, constants['HEIGHT'] // 2)
+        render_text("Press ESC to Main Menu", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 250, constants['HEIGHT'] // 2 + 50)
     elif game_state == 'how_to_play':
         render_how_to_play()
     elif game_state == 'credits':
