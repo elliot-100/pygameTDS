@@ -850,7 +850,7 @@ def spawn_zombie(zombie_type):
     zombies.add(zombie)
 
 def restart_game():
-    global all_sprites, projectiles, zombies, blood_particles, small_circles, current_wave
+    global all_sprites, projectiles, zombies, blood_particles, current_wave
     current_wave = 0
     player.health = constants['PLAYER_HEALTH']
     player.rect.center = (constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
@@ -859,7 +859,6 @@ def restart_game():
     projectiles.empty()
     blood_particles.empty()
     zombies.empty()
-    small_circles.empty()
     all_sprites.add(player)
     floating_texts.empty()
     player.set_initial_weapon()
@@ -1006,7 +1005,6 @@ weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, l
 camera = Camera(constants['WIDTH'], constants['HEIGHT'])
 
 blood_particles = pygame.sprite.Group()
-small_circles = pygame.sprite.Group()
 player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
 all_sprites = pygame.sprite.Group(player)
 projectiles = pygame.sprite.Group()
@@ -1218,7 +1216,6 @@ while running:
         blood_particles.update()
         projectiles.update()
         zombies.update()
-        small_circles.update()
         floating_texts.update()
         camera.update(player)
 
@@ -1265,9 +1262,6 @@ while running:
             
         for sprite in all_sprites:
             screen.blit(sprite.image, camera.apply(sprite))
-        
-        for circle in small_circles:
-            screen.blit(circle.image, camera.apply(circle))
         
         for flash in muzzle_flashes:
             screen.blit(flash.image, camera.apply(flash))
