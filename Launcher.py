@@ -693,8 +693,7 @@ class BloodParticle(pygame.sprite.Sprite):
             self.image.set_alpha(self.alpha)
         else:
             self.kill()
-
-
+            
 
 class FloatingText(pygame.sprite.Sprite):
     def __init__(self, x, y, text, color):
@@ -707,24 +706,38 @@ class FloatingText(pygame.sprite.Sprite):
         self.create_image()
         self.rect = self.image.get_rect(center=(x, y))
         self.creation_time = pygame.time.get_ticks()
-        self.duration = 1750
+        self.duration = 1750  # Total duration of text
+        self.fade_duration = 500  # Duration of fade out
         self.y_speed = -2
+        self.alpha = 255  # Initial alpha value
 
     def create_image(self):
+
         outline_surface = self.font.render(self.text, True, self.outline_color)
         outline_rect = outline_surface.get_rect()
         self.image = pygame.Surface((outline_rect.width + self.outline_width * 2, 
                                      outline_rect.height + self.outline_width * 2), pygame.SRCALPHA)
+        
         for dx, dy in [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (1, 0), (0, -1), (0, 1)]:
             self.image.blit(outline_surface, (self.outline_width + dx, self.outline_width + dy))
+        
         text_surface = self.font.render(self.text, True, self.color)
         self.image.blit(text_surface, (self.outline_width, self.outline_width))
 
     def update(self):
         self.rect.y += self.y_speed
         
-        if pygame.time.get_ticks() - self.creation_time > self.duration:
-            self.kill()
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - self.creation_time
+
+        if elapsed_time > self.duration:
+            # Start fading out
+            fade_progress = min(1, (elapsed_time - self.duration) / self.fade_duration)
+            self.alpha = int(255 * (1 - fade_progress))
+            self.image.set_alpha(self.alpha)
+
+            if fade_progress >= 1:
+                self.kill()
 
 
 def manhattan_distance(a, b):
@@ -1028,6 +1041,8 @@ fire_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosin.mp3')
 firing_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosinshot.mp3')
 fire_sound_PKM = pygame.mixer.Sound(BASE_DIR / 'sfx/pkm.mp3')
 fire_sound_skorpian = pygame.mixer.Sound(BASE_DIR / 'sfx/skorpian.mp3')
+fire_sound_svt = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
+fire_sound_rpg = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
 hit_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/splat.mp3')
 reload_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/reload.mp3')
 
@@ -1227,6 +1242,8 @@ while running:
                         'PKM(LMG)': fire_sound_PKM,
                         'Skorpian(SMG)': fire_sound_skorpian,
                         'AK-47(AR)': fire_sound_ak47
+                        'SVT-40(RIFLE)': fire_sound_svt,  # add SVT sound reminder
+                        'RPG-7(BLAST)': fire_sound_rpg    # Add RPG sound reminder (
                     }.get(player.current_weapon.name, None)
                     
                     if weapon_sound:
