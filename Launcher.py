@@ -931,6 +931,31 @@ def create_projectile(pellet_angle):
         player.current_weapon.damage, blast_radius=player.current_weapon.blast_radius
     )
 
+
+def load_font(filename: str, size: int) -> pygame.font.Font:
+    """Returns a `pygame.font.Font` object of the specified font filename and size.
+
+    Font file must be in the `fonts` directory.
+
+    """
+    return pygame.font.Font(BASE_DIR / 'fonts' / filename, size)
+
+
+def load_image(filename: str, *, convert_alpha=False) -> pygame.Surface:
+    """Returns a `pygame.Surface` from the specified filename.
+
+    Image file must be in the `images` directory.
+
+    Optionally, convert transparency to an alpha channel.
+    """
+    image = pygame.image.load(BASE_DIR / 'images' / filename)
+    if convert_alpha:
+        image = image.convert_alpha()
+    else:
+        image.convert()
+    return image
+
+
 # Initial setup, not dependent on Pygame initialization
 pistol = WeaponCategory("pistols", [
     Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
@@ -963,12 +988,12 @@ weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, l
 pygame.init()
 
 # - Fonts
-base_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
+base_font = load_font('ps2.ttf', 15)
 version_font = base_font
-score_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
+score_font = load_font('ps2.ttf', 20)
 fps_font = score_font
-blood_font = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
-weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
+blood_font = load_font('bloody.ttf', 20)
+weapon_font = load_font('ps2.ttf', 17)
 
 # - Display, images
 screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
@@ -1263,7 +1288,7 @@ while running:
             
         for sprite in all_sprites:
             screen.blit(sprite.image, camera.apply(sprite))
-        
+
         for flash in muzzle_flashes:
             screen.blit(flash.image, camera.apply(flash))
         
