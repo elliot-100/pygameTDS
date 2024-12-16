@@ -1,3 +1,4 @@
+# Import necessary libraries
 import pygame
 import sys
 import math
@@ -6,11 +7,13 @@ import heapq
 from collections import defaultdict
 from pathlib import Path
 
+# Check if the script is running in a bundled executable
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     BASE_DIR = Path(sys._MEIPASS)
 else:
     BASE_DIR = Path(__file__).parent
 
+# Level thresholds for experience points
 level_thresholds = {
     1: 0,
     2: 90,
@@ -44,7 +47,7 @@ level_thresholds = {
     30: 12425
 }
 
-
+# Game constants
 constants = {
     'WIDTH': 1920,
     'HEIGHT': 1080,
@@ -71,18 +74,21 @@ constants = {
     'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
     'ZOMBIE_AVOIDANCE_RADIUS': 5,
     'WAVE_DELAY': 10000,
-    'VIRTUAL_WIDTH': 2020,  
-    'VIRTUAL_HEIGHT': 1180,  
+    'VIRTUAL_WIDTH': 2020,
+    'VIRTUAL_HEIGHT': 1180,
 }
 
+# Add penetration colors to constants
 constants.update({
     'PENETRATION_COLORS': [
-         (255, 0, 0),
-         (255, 128, 0),
-         (255, 255, 0),
-         (0, 255, 0),
+        (255, 0, 0),
+        (255, 128, 0),
+        (255, 255, 0),
+        (0, 255, 0),
     ]
 })
+
+# Upgrade options for leveling up
 upgrade_options = [
     "HP +20%",
     "Bullet SPD 10%",
@@ -95,7 +101,9 @@ upgrade_options = [
     "a Random Weapon"
 ]
 
+
 class EnergyOrb(pygame.sprite.Sprite):
+    """Represents an energy orb that the player can collect."""
     def __init__(self, x, y):
         super().__init__()
         self.image = orb_image
@@ -104,10 +112,13 @@ class EnergyOrb(pygame.sprite.Sprite):
         self.spawn_time = pygame.time.get_ticks()
 
     def update(self):
+        """Checks if the orb's lifetime has expired and removes it if so."""
         if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
             self.kill()
 
+
 class Chest(pygame.sprite.Sprite):
+    """Represents a chest that the player can open to get rewards."""
     def __init__(self, x, y):
         super().__init__()
         self.image = chest_image
@@ -115,12 +126,14 @@ class Chest(pygame.sprite.Sprite):
         self.opened = False
 
     def open(self):
+        """Opens the chest, unlocks a random weapon, and removes it from the game."""
         self.opened = True
         self.kill()
 
 
 class Weapon:
-    def __init__(self, name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked,  blast_radius=0):
+    """Represents a weapon with its attributes."""
+    def __init__(self, name, projectile_speed, fire_rate, damage, spread_angle, ammo, reload_time, penetration, locked, blast_radius=0):
         self.name = name
         self.projectile_speed = projectile_speed
         self.fire_rate = fire_rate
@@ -133,24 +146,29 @@ class Weapon:
         self.locked = locked
         self.blast_radius = blast_radius
 
+
 class WeaponCategory:
+    """Represents a category of weapons."""
     def __init__(self, name, weapons):
         self.name = name
         self.weapons = weapons
         self.current_index = self.find_first_unlocked_weapon()
 
     def find_first_unlocked_weapon(self):
+        """Finds the index of the first unlocked weapon in the category."""
         for i, weapon in enumerate(self.weapons):
             if not weapon.locked:
                 return i
-        return None  
+        return None
 
     def current_weapon(self):
+        """Returns the currently selected weapon."""
         if self.current_index is not None:
             return self.weapons[self.current_index]
         return None
 
     def next_weapon(self):
+        """Cycles to the next unlocked weapon in the category."""
         if self.current_index is None:
             return
         start_index = self.current_index
@@ -162,6 +180,7 @@ class WeaponCategory:
                 return
 
     def previous_weapon(self):
+        """Cycles to the previous unlocked weapon in the category."""
         if self.current_index is None:
             return
         start_index = self.current_index
@@ -171,57 +190,62 @@ class WeaponCategory:
                 return
             if self.current_index == start_index:
                 return
+
     def has_unlocked_weapon(self):
+        """Checks if the category has at least one unlocked weapon."""
         return any(not weapon.locked for weapon in self.weapons)
 
-
 class Camera:
+    """Manages the camera's position and movement."""
     def __init__(self, width, height):
         self.rect = pygame.Rect(0, 0, width, height)
         self.width = width
         self.height = height
 
     def apply(self, entity):
+        """Applies the camera's offset to an entity's position."""
         if isinstance(entity, pygame.Rect):
             return entity.move(self.rect.topleft)
         return entity.rect.move(self.rect.topleft)
 
     def update(self, target):
+        """Updates the camera's position to follow the target."""
         x = -target.rect.centerx + int(constants['WIDTH'] / 2)
         y = -target.rect.centery + int(constants['HEIGHT'] / 2)
 
-        x = min(0, x) 
-        y = min(0, y) 
-        x = max(-(constants['VIRTUAL_WIDTH'] - constants['WIDTH']), x) 
-        y = max(-(constants['VIRTUAL_HEIGHT'] - constants['HEIGHT']), y) 
+        x = min(0, x)  # Keep camera within bounds
+        y = min(0, y)
+        x = max(-(constants['VIRTUAL_WIDTH'] - constants['WIDTH']), x)
+        y = max(-(constants['VIRTUAL_HEIGHT'] - constants['HEIGHT']), y)
 
         self.rect.topleft = (x, y)
 
-
 class MuzzleFlash(pygame.sprite.Sprite):
+    """Represents a muzzle flash effect when the player fires a weapon."""
     def __init__(self, pos, angle):
         super().__init__()
         self.original_image = pygame.Surface((10, 10), pygame.SRCALPHA)
-        
+
         base_red = random.randint(220, 255)
         base_green = random.randint(100, 180)
         base_blue = random.randint(0, 50)
         pygame.draw.circle(self.original_image, (base_red, base_green, base_blue, 230), (10, 10), 6)
-        
+
         pygame.draw.circle(self.original_image, (base_red, base_green + 20, base_blue, 180), (20, 10), 9)
         pygame.draw.circle(self.original_image, (min(base_red + 20, 255), min(base_green + 40, 255), min(base_blue + 20, 255), 130), (30, 10), 12)
-        
+
         self.image = pygame.transform.rotate(self.original_image, math.degrees(-angle))
         self.rect = self.image.get_rect(center=pos)
         self.spawn_time = pygame.time.get_ticks()
         self.lifetime = random.randint(1, 4)
 
     def update(self):
+        """Checks if the muzzle flash's lifetime has expired and removes it if so."""
         if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
             self.kill()
 
-
 class Player(pygame.sprite.Sprite):
+    """Represents the player character."""
     def __init__(self, x, y):
         super().__init__()
         self.original_image = player_image
@@ -243,6 +267,7 @@ class Player(pygame.sprite.Sprite):
         self.set_initial_weapon()
 
     def set_initial_weapon(self):
+        """Sets the initial weapon for the player."""
         first_pistol = self.weapon_categories[0].weapons[0]
         first_pistol.locked = False
         for category in self.weapon_categories:
@@ -250,18 +275,21 @@ class Player(pygame.sprite.Sprite):
                 if weapon != first_pistol:
                     weapon.locked = True
         self.current_weapon = first_pistol
-        
+
     def find_first_category_with_unlocked_weapon(self):
+        """Finds the index of the first category with an unlocked weapon."""
         for i, category in enumerate(self.weapon_categories):
             if category.has_unlocked_weapon():
                 return i
-        return 0 
+        return 0
 
     def get_current_weapon(self):
+        """Returns the player's currently equipped weapon."""
         category = self.weapon_categories[self.current_category_index]
         return category.current_weapon()
 
     def switch_weapon_category(self, index):
+        """Switches to a different weapon category."""
         if 0 <= index < len(self.weapon_categories):
             self.current_category_index = index
             new_weapon = self.weapon_categories[self.current_category_index].current_weapon()
@@ -269,6 +297,7 @@ class Player(pygame.sprite.Sprite):
                 self.current_weapon = new_weapon
 
     def cycle_weapon(self, direction):
+        """Cycles through weapons within the current category."""
         current_category = self.weapon_categories[self.current_category_index]
         if direction > 0:
             current_category.next_weapon()
@@ -277,8 +306,9 @@ class Player(pygame.sprite.Sprite):
         new_weapon = current_category.current_weapon()
         if new_weapon is not None:
             self.current_weapon = new_weapon
-        
+
     def update(self, keys, mouse_pos):
+        """Updates the player's position and rotation."""
         self.dx, self.dy = 0, 0
         if keys[pygame.K_w]:
             self.dy -= self.speed
@@ -302,30 +332,34 @@ class Player(pygame.sprite.Sprite):
 
         # Debug print
         print(f"dx: {self.dx}, dy: {self.dy}")
-        
+
     def rotate(self, angle):
+        """Rotates the player's image."""
         self.image = pygame.transform.rotate(self.original_image, -math.degrees(angle))
         self.rect = self.image.get_rect(center=self.rect.center)
         self.mask = pygame.mask.from_surface(self.image)
 
     def draw_health_bar(self, camera):
+        """Draws the player's health bar on the screen."""
         bar_length = 30
         bar_height = 6
         fill = (self.health / constants['PLAYER_HEALTH']) * bar_length
         outline_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 20, bar_length, bar_height)
         fill_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 20, fill, bar_height)
-    
+
         camera_outline_rect = camera.apply(pygame.Rect(outline_rect))
         camera_fill_rect = camera.apply(pygame.Rect(fill_rect))
-    
+
         pygame.draw.rect(screen, constants['NEON'], camera_fill_rect)
         pygame.draw.rect(screen, constants['WHITE'], camera_outline_rect, 1)
 
     def take_damage(self, amount):
+        """Reduces the player's health."""
         self.health -= amount
         self.health = max(self.health, 0)
 
     def shake(self):
+        """Initiates screen shake effect."""
         self.shake_offset = (random.randint(-self.shake_intensity, self.shake_intensity),
                              random.randint(-self.shake_intensity, self.shake_intensity))
         self.shake_duration = 1
