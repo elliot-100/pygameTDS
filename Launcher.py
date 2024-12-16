@@ -711,7 +711,7 @@ def render_upgrade_panel():
     panel_x = (constants['WIDTH'] - panel_width) // 2
     panel_y = (constants['HEIGHT'] - panel_height) // 2
 
-    render_text("Choose an Upgrade", font, constants['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
+    render_text("Choose an Upgrade", base_font, constants['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
 
     option_rects = []
     for i, option in enumerate(upgrade_options):
@@ -719,7 +719,7 @@ def render_upgrade_panel():
         y = panel_y + (i // 3) * 150
         rect = pygame.Rect(x, y, 250, 100)
         pygame.draw.rect(screen, constants['WHITE'], rect, 2)
-        render_text(option, font, constants['WHITE'], x + 10, y + 40)
+        render_text(option, base_font, constants['WHITE'], x + 10, y + 40)
         option_rects.append(rect)
 
     return option_rects
@@ -760,7 +760,7 @@ def apply_upgrade(index):
 
 
 def display_damage_text(damage, position, color):
-    damage_text = font.render(f"-{int(damage)}", True, color)
+    damage_text = base_font.render(f"-{int(damage)}", True, color)
     damage_rect = damage_text.get_rect(center=position)
     screen.blit(damage_text, damage_rect)
 
@@ -881,34 +881,34 @@ def draw_progress_bar(surface, x, y, width, height, progress, color):
     fill_rect = pygame.Rect(x, y, int(width * progress), height)
     pygame.draw.rect(surface, constants['WHITE'], bar_rect, 2)
     pygame.draw.rect(surface, color, fill_rect)
-    level_text = font.render(f'Brain Power: {player.level}', True, constants['WHITE'])
+    level_text = base_font.render(f'Brain Power: {player.level}', True, constants['WHITE'])
     level_text_rect = level_text.get_rect(midleft=(x + 10, y + height // 2))
     surface.blit(level_text, level_text_rect)
-    xp_text = font.render(f"{player.xp}/{level_thresholds[player.level + 1]}", True, constants['WHITE'])
+    xp_text = base_font.render(f"{player.xp}/{level_thresholds[player.level + 1]}", True, constants['WHITE'])
     xp_text_rect = xp_text.get_rect(midright=(x + width - 10, y + height // 2))
     surface.blit(xp_text, xp_text_rect)
 
 def render_how_to_play():
     screen.fill(constants['BLACK'])
-    render_text("How to Play", font, constants['WHITE'], constants['WIDTH'] // 2 - 100, 25)
-    render_text("WASD - Move", font, constants['WHITE'], 100, 100)
-    render_text("Left Mouse Button - Shoot", font, constants['WHITE'], 100, 150)
-    render_text("Right Mouse Button - Auto-fire" , font, constants['WHITE'], 100, 200)
-    render_text("R - Reload", font, constants['WHITE'], 100, 250)
-    render_text("1-7 - Switch weapon category", font, constants['WHITE'], 100, 300)
-    render_text("Mouse Wheel - Cycle weapons in category", font, constants['WHITE'], 100, 350)
-    render_text("ESC - Pause game", font, constants['WHITE'], 100, 400)
-    render_text("Press ESC to return to main menu", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] - 100)
+    render_text("How to Play", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 100, 25)
+    render_text("WASD - Move", base_font, constants['WHITE'], 100, 100)
+    render_text("Left Mouse Button - Shoot", base_font, constants['WHITE'], 100, 150)
+    render_text("Right Mouse Button - Auto-fire", base_font, constants['WHITE'], 100, 200)
+    render_text("R - Reload", base_font, constants['WHITE'], 100, 250)
+    render_text("1-7 - Switch weapon category", base_font, constants['WHITE'], 100, 300)
+    render_text("Mouse Wheel - Cycle weapons in category", base_font, constants['WHITE'], 100, 350)
+    render_text("ESC - Pause game", base_font, constants['WHITE'], 100, 400)
+    render_text("Press ESC to return to main menu", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] - 100)
 
 def render_credits():
     screen.fill(constants['BLACK'])
-    render_text("Credits", font, constants['WHITE'], constants['WIDTH'] // 2 - 50, 50)
-    render_text("Game Developer: Some dude living in his mom's basement", font, constants['WHITE'], 100, 150)
-    render_text("GraphicSFX: Me", font, constants['WHITE'], 100, 200)
-    render_text("SoundFX: Me", font, constants['WHITE'], 100, 250)
-    render_text("Programming: Me", font, constants['WHITE'], 100, 300)
-    render_text("Special Thanks: Coffee", font, constants['WHITE'], 100, 350)
-    render_text("Press ESC to return to main menu", font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] - 100)
+    render_text("Credits", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 50, 50)
+    render_text("Game Developer: Some dude living in his mom's basement", base_font, constants['WHITE'], 100, 150)
+    render_text("GraphicSFX: Me", base_font, constants['WHITE'], 100, 200)
+    render_text("SoundFX: Me", base_font, constants['WHITE'], 100, 250)
+    render_text("Programming: Me", base_font, constants['WHITE'], 100, 300)
+    render_text("Special Thanks: Coffee", base_font, constants['WHITE'], 100, 350)
+    render_text("Press ESC to return to main menu", base_font, constants['WHITE'], constants['WIDTH'] // 2 - 200, constants['HEIGHT'] - 100)
 
 def set_initial_weapon(self):
     first_pistol = self.weapon_categories[0].weapons[0]
@@ -963,8 +963,7 @@ weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, l
 pygame.init()
 
 # - Fonts
-font1 = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
-font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
+base_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
 scorefont = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
 bloodfont = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
 fps_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
