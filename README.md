@@ -28,6 +28,7 @@ PygameTDS is an open-source top-down shooter engine with rougelite elements that
 
 🛠 **Contributions? Yes, please!**  
 Fork the repo, make your changes, and submit a pull request. Here's a roadmap for some features you can work on and contribute to a great open source project!
+If you have a general suggestion or need some help you can check our discussions section; https://github.com/Poppadomus/pygameTDS/discussions
 
 👾 **Roadmap**
 
