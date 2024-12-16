@@ -479,6 +479,15 @@ class Zombie(pygame.sprite.Sprite):
         self.last_path_update = pygame.time.get_ticks() - self.path_update_offset
         self.show_health_bar = False
         self.last_damage_time = 0
+        self.last_groan_time = pygame.time.get_ticks()
+        self.next_groan_interval = random.randint(1000, 30000)  # 1-30 seconds in milliseconds
+        
+        # Load zombie groan sounds
+        self.groan_sounds = [
+            pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan1.mp3'),
+            pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan2.mp3'),
+            pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan3.mp3')
+        ]
     
     def get_class_name(self, zombie_class):
         for name, cls in vars(ZombieClass).items():
@@ -516,6 +525,20 @@ class Zombie(pygame.sprite.Sprite):
         self.check_boundaries()
         self.rotate_to_target()
         self.hitbox.center = self.rect.center
+
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_groan_time > self.next_groan_interval:
+            self.play_random_groan()
+    
+    def play_random_groan(self):
+        # Randomly select and play a groan sound
+        if not self.killed and not self.fading:
+            groan_sound = random.choice(self.groan_sounds)
+            groan_sound.play()
+            
+            # Reset groan timer and set new random interval
+            self.last_groan_time = pygame.time.get_ticks()
+            self.next_groan_interval = random.randint(1000, 30000)
 
     def update_path(self):
         start = (self.rect.centerx // 32, self.rect.centery // 32)
@@ -1242,8 +1265,8 @@ while running:
                         'PKM(LMG)': fire_sound_PKM,
                         'Skorpian(SMG)': fire_sound_skorpian,
                         'AK-47(AR)': fire_sound_ak47
-                        'SVT-40(RIFLE)': fire_sound_svt,  # add SVT sound reminder
-                        'RPG-7(BLAST)': fire_sound_rpg    # Add RPG sound reminder (
+                       # 'SVT-40(RIFLE)': fire_sound_svt,  # add SVT sound reminder
+                       # 'RPG-7(BLAST)': fire_sound_rpg    # Add RPG sound reminder (
                     }.get(player.current_weapon.name, None)
                     
                     if weapon_sound:
@@ -1394,5 +1417,3 @@ while running:
 
 pygame.quit()
 sys.exit()
-
-
