@@ -11,8 +11,6 @@ if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
 else:
     BASE_DIR = Path(__file__).parent
 
-pygame.init()
-
 level_thresholds = {
     1: 0,
     2: 90,
@@ -222,10 +220,7 @@ class MuzzleFlash(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
             self.kill()
 
-    def get_current_weapon(self):
-        category = self.weapon_categories[self.current_category_index]
-        return category.current_weapon()
-        
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -604,23 +599,6 @@ class Zombie(pygame.sprite.Sprite):
             energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
             energy_orbs.add(energy_orb)
 
-    def flash(self):
-        flash_duration = 100
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_damage_time < flash_duration:
-            self.image.fill((255, 0, 0), special_flags=pygame.BLEND_MULT)
-        else:
-            self.image = self.original_image.copy()
-
-    def fade_out(self):
-        fade_duration = 500
-        elapsed_time = pygame.time.get_ticks() - self.fade_start_time
-        if elapsed_time < fade_duration:
-            alpha = 255 - int((elapsed_time / fade_duration) * 255)
-            self.image.set_alpha(alpha)
-        else:
-            self.kill()
-
     def get_score_value(self):
         score_table = {
             'a': 5, 'b': 10, 'c': 15, 'd': 20, 'e': 25, 'f': 30, 'g': 35, 'h': 40, 'i': 45, 'j': 50, 'k': 55
@@ -870,7 +848,7 @@ def spawn_zombie(zombie_type):
     zombies.add(zombie)
 
 def restart_game():
-    global all_sprites, projectiles, zombies, blood_particles, small_circles, current_wave
+    global all_sprites, projectiles, zombies, blood_particles, current_wave
     current_wave = 0
     player.health = constants['PLAYER_HEALTH']
     player.rect.center = (constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
@@ -879,7 +857,6 @@ def restart_game():
     projectiles.empty()
     blood_particles.empty()
     zombies.empty()
-    small_circles.empty()
     all_sprites.add(player)
     floating_texts.empty()
     player.set_initial_weapon()
@@ -954,64 +931,25 @@ def create_projectile(pellet_angle):
         player.current_weapon.damage, blast_radius=player.current_weapon.blast_radius
     )
 
-screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
-pygame.display.set_caption("TBBP Game")
-
-font1 = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
-font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
-scorefont = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
-bloodfont = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
-fps_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
-fps_color = constants['GAMMA']
-clock = pygame.time.Clock()
-
-player_image = pygame.image.load(BASE_DIR / 'images/player.png').convert_alpha()
-player_mask = pygame.mask.from_surface(player_image)
-zombie_images = [pygame.image.load(BASE_DIR / f'images/zombie{i}.png').convert_alpha() for i in range(1, 12)]
-background_image = pygame.image.load(BASE_DIR / 'images/zombies.png').convert()
-chest_image = pygame.image.load(BASE_DIR / 'images/chest.png').convert_alpha()
-orb_image = pygame.image.load(BASE_DIR / 'images/orb.png').convert_alpha()
-
-all_zombies_group = pygame.sprite.Group()
-weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
-version_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
-muzzle_flashes = pygame.sprite.Group()
-
-pygame.mixer.init()
-fire_sound_ak47 = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
-fire_sound_beretta = pygame.mixer.Sound(BASE_DIR / 'sfx/glock.mp3')
-fire_sound_mossberg = pygame.mixer.Sound(BASE_DIR / 'sfx/mossberg.mp3')
-hit_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/splat.mp3')
-reload_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/reload.mp3')
-fire_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosin.mp3')
-firing_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosinshot.mp3')
-fire_sound_PKM = pygame.mixer.Sound(BASE_DIR / 'sfx/pkm.mp3')
-fire_sound_skorpian = pygame.mixer.Sound(BASE_DIR / 'sfx/skorpian.mp3')
-
+# Initial setup, not dependent on Pygame initialization
 pistol = WeaponCategory("pistols", [
     Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
 ])
-    # Rifles
 smg = WeaponCategory("SMG", [
     Weapon("Skorpian(SMG)", 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
 ])
-
 rifles = WeaponCategory("Rifles", [
     Weapon("SVT-40(RIFLE)", 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
 ])
-
 bolt_action = WeaponCategory("Bolt Action", [
     Weapon("Mosin(BOLT)", 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
 ])
-
 assault_rifles = WeaponCategory("Assault Rifle", [
     Weapon("AK-47(AR)", 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
 ])
-
 lmgs = WeaponCategory("LMG", [
     Weapon("PKM(LMG)", 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
 ])
-
 shotguns = WeaponCategory("Shotgun", [
     Weapon("Mossberg 500(SG)", 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
     Weapon("Remington 870(SG)", 20, 1100, 28, 0.55, 6, 2600, 3, locked=True),
@@ -1019,20 +957,63 @@ shotguns = WeaponCategory("Shotgun", [
 launchers = WeaponCategory("Launchers", [
     Weapon("RPG-7(BLAST)", 20, 5000, 100, 0.1, 1, 5000, 0, locked=True, blast_radius=50),
 ])
-
-
 weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
 
-camera = Camera(constants['WIDTH'], constants['HEIGHT'])
+# Initialize Pygame and dependents
+pygame.init()
 
+# - Fonts
+font1 = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
+font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
+scorefont = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
+bloodfont = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
+fps_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
+weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
+version_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
+
+# - Display, images
+screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
+pygame.display.set_caption("TBBP Game")
+
+player_image = pygame.image.load(BASE_DIR / 'images/player.png').convert_alpha()
+player_mask = pygame.mask.from_surface(player_image)
+zombie_images = [
+    pygame.image.load(BASE_DIR / f'images/zombie{i}.png').convert_alpha() for i in range(1, 12)
+]
+background_image = pygame.image.load(BASE_DIR / 'images/zombies.png').convert()
+chest_image = pygame.image.load(BASE_DIR / 'images/chest.png').convert_alpha()
+orb_image = pygame.image.load(BASE_DIR / 'images/orb.png').convert_alpha()
+orb_image = pygame.transform.scale(orb_image, (20, 20))
+
+# Mixer, sfx
+pygame.mixer.init()
+fire_sound_ak47 = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
+fire_sound_beretta = pygame.mixer.Sound(BASE_DIR / 'sfx/glock.mp3')
+fire_sound_mossberg = pygame.mixer.Sound(BASE_DIR / 'sfx/mossberg.mp3')
+fire_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosin.mp3')
+firing_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosinshot.mp3')
+fire_sound_PKM = pygame.mixer.Sound(BASE_DIR / 'sfx/pkm.mp3')
+fire_sound_skorpian = pygame.mixer.Sound(BASE_DIR / 'sfx/skorpian.mp3')
+hit_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/splat.mp3')
+reload_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/reload.mp3')
+
+# Empty sprite groups
+all_sprites = pygame.sprite.Group()
 blood_particles = pygame.sprite.Group()
-small_circles = pygame.sprite.Group()
-player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
-all_sprites = pygame.sprite.Group(player)
 projectiles = pygame.sprite.Group()
 zombies = pygame.sprite.Group()
 floating_texts = pygame.sprite.Group()
 energy_orbs = pygame.sprite.Group()
+all_zombies_group = pygame.sprite.Group()
+muzzle_flashes = pygame.sprite.Group()
+
+# Other
+fps_color = constants['GAMMA']
+clock = pygame.time.Clock()
+camera = Camera(constants['WIDTH'], constants['HEIGHT'])
+
+player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+all_sprites.add(player)
 SPAWN_ZOMBIE = pygame.USEREVENT + 1
 pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
 current_wave = 1
@@ -1062,7 +1043,6 @@ last_spawn_time = 0
 wave_start_time = 0
 wave_delay_active = False
 auto_firing = False
-orb_image = pygame.transform.scale(orb_image, (20, 20))
 show_upgrade_panel = False
 
 while running:
@@ -1238,7 +1218,6 @@ while running:
         blood_particles.update()
         projectiles.update()
         zombies.update()
-        small_circles.update()
         floating_texts.update()
         camera.update(player)
 
@@ -1285,9 +1264,6 @@ while running:
             
         for sprite in all_sprites:
             screen.blit(sprite.image, camera.apply(sprite))
-        
-        for circle in small_circles:
-            screen.blit(circle.image, camera.apply(circle))
         
         for flash in muzzle_flashes:
             screen.blit(flash.image, camera.apply(flash))
