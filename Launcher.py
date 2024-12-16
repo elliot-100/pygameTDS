@@ -1,4 +1,3 @@
-# Import necessary libraries
 import pygame
 import sys
 import math
@@ -7,13 +6,11 @@ import heapq
 from collections import defaultdict
 from pathlib import Path
 
-# Check if the script is running in a bundled executable
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     BASE_DIR = Path(sys._MEIPASS)
 else:
     BASE_DIR = Path(__file__).parent
 
-# Level thresholds for experience points
 level_thresholds = {
     1: 0,
     2: 90,
@@ -47,7 +44,6 @@ level_thresholds = {
     30: 12425
 }
 
-# Game constants
 constants = {
     'WIDTH': 1920,
     'HEIGHT': 1080,
@@ -78,7 +74,6 @@ constants = {
     'VIRTUAL_HEIGHT': 1180,
 }
 
-# Add penetration colors to constants
 constants.update({
     'PENETRATION_COLORS': [
         (255, 0, 0),
@@ -88,7 +83,6 @@ constants.update({
     ]
 })
 
-# Upgrade options for leveling up
 upgrade_options = [
     "HP +20%",
     "Bullet SPD 10%",
@@ -213,7 +207,7 @@ class Camera:
         x = -target.rect.centerx + int(constants['WIDTH'] / 2)
         y = -target.rect.centery + int(constants['HEIGHT'] / 2)
 
-        x = min(0, x)  # Keep camera within bounds
+        x = min(0, x)  
         y = min(0, y)
         x = max(-(constants['VIRTUAL_WIDTH'] - constants['WIDTH']), x)
         y = max(-(constants['VIRTUAL_HEIGHT'] - constants['HEIGHT']), y)
@@ -330,7 +324,6 @@ class Player(pygame.sprite.Sprite):
         angle = math.atan2(mouse_pos[1] - self.rect.centery, mouse_pos[0] - self.rect.centerx)
         self.rotate(angle)
 
-        # Debug print
         print(f"dx: {self.dx}, dy: {self.dy}")
 
     def rotate(self, angle):
@@ -480,9 +473,8 @@ class Zombie(pygame.sprite.Sprite):
         self.show_health_bar = False
         self.last_damage_time = 0
         self.last_groan_time = pygame.time.get_ticks()
-        self.next_groan_interval = random.randint(1000, 30000)  # 1-30 seconds in milliseconds
+        self.next_groan_interval = random.randint(1000, 30000)  
         
-        # Load zombie groan sounds
         self.groan_sounds = [
             pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan1.mp3'),
             pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan2.mp3'),
@@ -531,12 +523,10 @@ class Zombie(pygame.sprite.Sprite):
             self.play_random_groan()
     
     def play_random_groan(self):
-        # Randomly select and play a groan sound
         if not self.killed and not self.fading:
             groan_sound = random.choice(self.groan_sounds)
             groan_sound.play()
             
-            # Reset groan timer and set new random interval
             self.last_groan_time = pygame.time.get_ticks()
             self.next_groan_interval = random.randint(1000, 30000)
 
@@ -729,10 +719,10 @@ class FloatingText(pygame.sprite.Sprite):
         self.create_image()
         self.rect = self.image.get_rect(center=(x, y))
         self.creation_time = pygame.time.get_ticks()
-        self.duration = 1750  # Total duration of text
-        self.fade_duration = 500  # Duration of fade out
+        self.duration = 1750
+        self.fade_duration = 500
         self.y_speed = -2
-        self.alpha = 255  # Initial alpha value
+        self.alpha = 255
 
     def create_image(self):
 
@@ -754,7 +744,6 @@ class FloatingText(pygame.sprite.Sprite):
         elapsed_time = current_time - self.creation_time
 
         if elapsed_time > self.duration:
-            # Start fading out
             fade_progress = min(1, (elapsed_time - self.duration) / self.fade_duration)
             self.alpha = int(255 * (1 - fade_progress))
             self.image.set_alpha(self.alpha)
@@ -772,14 +761,20 @@ def get_neighbors(pos, grid_size):
     return [(nx, ny) for nx, ny in neighbors if 0 <= nx < grid_size[0] and 0 <= ny < grid_size[1]]
 
 def render_upgrade_panel():
-    overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']))
-    overlay.fill(constants['BLACK'])
+    # Create semi-transparent overlay for the whole screen
+    overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 180))  # Black with alpha=180
     screen.blit(overlay, (0, 0))
 
     panel_width = 900
     panel_height = 450
     panel_x = (constants['WIDTH'] - panel_width) // 2
     panel_y = (constants['HEIGHT'] - panel_height) // 2
+
+    # Create semi-transparent panel surface with alpha channel
+    panel = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+    panel.fill((0, 0, 0, 200))  # Black with alpha=200
+    screen.blit(panel, (panel_x, panel_y))
 
     render_text("Choose an Upgrade", font, constants['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
 
@@ -788,6 +783,12 @@ def render_upgrade_panel():
         x = panel_x + (i % 3) * 300 + 25
         y = panel_y + (i // 3) * 150
         rect = pygame.Rect(x, y, 250, 100)
+        
+        # Create semi-transparent option boxes with alpha channel
+        option_surface = pygame.Surface((250, 100), pygame.SRCALPHA)
+        option_surface.fill((0, 0, 0, 150))  # Black with alpha=150
+        screen.blit(option_surface, (x, y))
+        
         pygame.draw.rect(screen, constants['WHITE'], rect, 2)
         render_text(option, font, constants['WHITE'], x + 10, y + 40)
         option_rects.append(rect)
@@ -796,34 +797,34 @@ def render_upgrade_panel():
 
 
 def apply_upgrade(index):
-    if index == 0:  # Increase Health
+    if index == 0:  
         player.health *= 1.1
-    elif index == 1:  # Increase Speed
+    elif index == 1:  
         player.speed *= 1.1
-    elif index == 2:  # Increase Damage
+    elif index == 2:  
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.damage *= 1.1
-    elif index == 3:  # Faster Reload
+    elif index == 3:  
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.reload_time *= 0.9
-    elif index == 4:  # Increase Ammo Capacity
+    elif index == 4:  
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.max_ammo = int(weapon.max_ammo * 1.2)
                 weapon.ammo = weapon.max_ammo
-    elif index == 5:  # Increase Fire Rate
+    elif index == 5:  
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.fire_rate *= 0.9
-    elif index == 6:  # Improve Accuracy
+    elif index == 6:  
         for category in weapon_categories:
             for weapon in category.weapons:
                 weapon.spread_angle *= 0.9
-    elif index == 7:  # Increase XP Gain
+    elif index == 7:  
         player.xp_multiplier *= 100
-    elif index == 8:  # Unlock Random Weapon
+    elif index == 8:  
         unlock_random_weapon()
 
     print(f"Applied upgrade: {upgrade_options[index]}")
@@ -886,7 +887,7 @@ def unlock_random_weapon():
 
 def calculate_zombies(wave):
     base_zombies = 25 * wave
-    zombie_types = min(26, wave)  # Limit to 26 types (a-z)
+    zombie_types = min(26, wave)
     return [(chr(97 + i), base_zombies // zombie_types) for i in range(zombie_types)]
 
 def spawn_zombie(zombie_type):
@@ -1001,7 +1002,7 @@ def create_projectile(pellet_angle):
         player.current_weapon.damage, blast_radius=player.current_weapon.blast_radius
     )
 
-# Initial setup, not dependent on Pygame initialization
+
 pistol = WeaponCategory("pistols", [
     Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
 ])
@@ -1029,10 +1030,10 @@ launchers = WeaponCategory("Launchers", [
 ])
 weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
 
-# Initialize Pygame and dependents
+
 pygame.init()
 
-# - Fonts
+
 font1 = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
 font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
 scorefont = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
@@ -1041,7 +1042,6 @@ fps_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
 weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
 version_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
 
-# - Display, images
 screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
 pygame.display.set_caption("TBBP Game")
 
@@ -1055,7 +1055,7 @@ chest_image = pygame.image.load(BASE_DIR / 'images/chest.png').convert_alpha()
 orb_image = pygame.image.load(BASE_DIR / 'images/orb.png').convert_alpha()
 orb_image = pygame.transform.scale(orb_image, (20, 20))
 
-# Mixer, sfx
+
 pygame.mixer.init()
 fire_sound_ak47 = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
 fire_sound_beretta = pygame.mixer.Sound(BASE_DIR / 'sfx/glock.mp3')
@@ -1069,7 +1069,7 @@ fire_sound_rpg = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
 hit_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/splat.mp3')
 reload_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/reload.mp3')
 
-# Empty sprite groups
+
 all_sprites = pygame.sprite.Group()
 blood_particles = pygame.sprite.Group()
 projectiles = pygame.sprite.Group()
@@ -1079,7 +1079,6 @@ energy_orbs = pygame.sprite.Group()
 all_zombies_group = pygame.sprite.Group()
 muzzle_flashes = pygame.sprite.Group()
 
-# Other
 fps_color = constants['GAMMA']
 clock = pygame.time.Clock()
 camera = Camera(constants['WIDTH'], constants['HEIGHT'])
@@ -1130,10 +1129,10 @@ while running:
         elif event.type == pygame.MOUSEMOTION:
             cursor_rect.center = event.pos
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 3:  # Right mouse button
+            if event.button == 3:  
                 auto_firing = not auto_firing
                 print("Auto-firing mode enabled" if auto_firing else "Auto-firing mode disabled")
-            elif event.button == 1 and show_upgrade_panel:  # Left mouse button for upgrade panel
+            elif event.button == 1 and show_upgrade_panel:
                 mouse_pos = pygame.mouse.get_pos()
                 
                 panel_width = 1600
@@ -1198,7 +1197,7 @@ while running:
                 if wave_delay_active:
                     wave_delay_active = False
                 if current_time - last_spawn_time >= constants['SPAWN_INTERVAL']:
-                    if zombies_to_spawn and len(zombies) < constants['MAX_ALIVE_ZOMBIES']:  # Add this check
+                    if zombies_to_spawn and len(zombies) < constants['MAX_ALIVE_ZOMBIES']:
                         zombie_type, count = random.choice(zombies_to_spawn)
                         spawn_zombie(zombie_type)
                         count -= 1
@@ -1216,12 +1215,31 @@ while running:
         camera.update(player)
         
         if show_upgrade_panel:
-            render_upgrade_panel()
+            # Draw the game world first
+            bg_x = -camera.rect.x
+            bg_y = -camera.rect.y
+            scaled_background = pygame.transform.scale(background_image, (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']))
+            screen_rect = pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+            image_rect = scaled_background.get_rect()
+            image_rect.topleft = (bg_x, bg_y)
+            cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
+            screen.blit(cropped_image, (0, 0))
+            
+            # Then render all game elements
+            for sprite in all_sprites:
+                screen.blit(sprite.image, camera.apply(sprite))
+            
+            # Now add the semi-transparent overlay
+            overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 75))  # Adjust alpha value (128) for desired transparency
+            screen.blit(overlay, (0, 0))
+            
+            option_rects = render_upgrade_panel()
             screen.blit(CURSOR_IMG, cursor_rect)
             pygame.display.flip()
             continue
 
-        # Update game objects and check collisions
+
         for orb in energy_orbs:
             if pygame.sprite.collide_rect(player, orb):
                 orb.kill()
@@ -1265,8 +1283,8 @@ while running:
                         'PKM(LMG)': fire_sound_PKM,
                         'Skorpian(SMG)': fire_sound_skorpian,
                         'AK-47(AR)': fire_sound_ak47
-                       # 'SVT-40(RIFLE)': fire_sound_svt,  # add SVT sound reminder
-                       # 'RPG-7(BLAST)': fire_sound_rpg    # Add RPG sound reminder (
+                       # 'SVT-40(RIFLE)': fire_sound_svt,
+                       # 'RPG-7(BLAST)': fire_sound_rpg 
                     }.get(player.current_weapon.name, None)
                     
                     if weapon_sound:
@@ -1284,7 +1302,6 @@ while running:
                     reloading[player.current_weapon.name] = True
                     pygame.mixer.Sound.play(reload_sound)
 
-        # Update and draw game objects
         energy_orbs.update()
         muzzle_flashes.update()
         player.update(keys, adjusted_mouse_pos)
@@ -1316,7 +1333,6 @@ while running:
                     if projectile.penetration <= 0:
                         projectile.kill()
 
-        # Draw background and other visual elements
         bg_x = -camera.rect.x
         bg_y = -camera.rect.y
         scaled_background = pygame.transform.scale(background_image, (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']))
