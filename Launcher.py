@@ -132,18 +132,18 @@ class Player(pygame.sprite.Sprite):
 
     def update(self, keys, mouse_pos):
         """Updates the player's position and rotation."""
-        self.dx, self.dy = 0, 0
+        dx, dy = 0, 0
         if keys[pygame.K_w]:
-            self.dy -= self.speed
+            dy -= self.speed
         if keys[pygame.K_s]:
-            self.dy += self.speed
+            dy += self.speed
         if keys[pygame.K_a]:
-            self.dx -= self.speed
+            dx -= self.speed
         if keys[pygame.K_d]:
-            self.dx += self.speed
+            dx += self.speed
 
-        new_x = self.rect.x + self.dx
-        new_y = self.rect.y + self.dy
+        new_x = self.rect.x + dx
+        new_y = self.rect.y + dy
 
         if 0 <= new_x < GAME_AREA['WIDTH'] - self.rect.width:
             self.rect.x = new_x
