@@ -73,6 +73,7 @@ class Player(pygame.sprite.Sprite):
         self.shake_intensity = 0
         self.weapon_categories = weapon_categories
         self.current_category_index = 0
+        self.current_weapon = None
         self.set_initial_weapon()
 
     def reset(self):
