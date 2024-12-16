@@ -222,10 +222,7 @@ class MuzzleFlash(pygame.sprite.Sprite):
         if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
             self.kill()
 
-    def get_current_weapon(self):
-        category = self.weapon_categories[self.current_category_index]
-        return category.current_weapon()
-        
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
