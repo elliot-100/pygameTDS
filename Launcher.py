@@ -285,6 +285,8 @@ class Zombie(pygame.sprite.Sprite):
             pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan2.mp3'),
             pygame.mixer.Sound(BASE_DIR / 'sfx/zombie_groan3.mp3'),
         ]
+        self.flash_active = False
+        self.flash_start_time = 0
 
     def get_class_name(self, zombie_class):
         for name, cls in vars(ZombieClass).items():
