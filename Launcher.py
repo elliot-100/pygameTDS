@@ -98,9 +98,9 @@ upgrade_options = [
 
 class EnergyOrb(pygame.sprite.Sprite):
     """Represents an energy orb that the player can collect."""
-    def __init__(self, x, y):
+    def __init__(self, x, y, image):
         super().__init__()
-        self.image = orb_image
+        self.image = image
         self.rect = self.image.get_rect(center=(x, y))
         self.lifetime = 10000000
         self.spawn_time = pygame.time.get_ticks()
@@ -113,9 +113,9 @@ class EnergyOrb(pygame.sprite.Sprite):
 
 class Chest(pygame.sprite.Sprite):
     """Represents a chest that the player can open to get rewards."""
-    def __init__(self, x, y):
+    def __init__(self, x, y, image):
         super().__init__()
-        self.image = chest_image
+        self.image = image
         self.rect = self.image.get_rect(center=(x, y))
         self.opened = False
 
@@ -240,9 +240,9 @@ class MuzzleFlash(pygame.sprite.Sprite):
 
 class Player(pygame.sprite.Sprite):
     """Represents the player character."""
-    def __init__(self, x, y):
+    def __init__(self, x, y, image):
         super().__init__()
-        self.original_image = player_image
+        self.original_image = image
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = player_mask
@@ -444,9 +444,9 @@ class ZombieClass:
     k = {'HEALTH': 444, 'SPEED': 2.0}
 
 class Zombie(pygame.sprite.Sprite):
-    def __init__(self, x, y, player, zombie_image, zombie_class):
+    def __init__(self, x, y, player, image, zombie_class):
         super().__init__()
-        self.original_image = zombie_image
+        self.original_image = image
         self.image = self.original_image.copy()
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = pygame.mask.from_surface(self.image)
@@ -643,7 +643,7 @@ class Zombie(pygame.sprite.Sprite):
             self.player.score += score_gained
             player.update_level_and_xp(score_gained + self.blood())
 
-            energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery)
+            energy_orb = EnergyOrb(self.rect.centerx, self.rect.centery, orb_image)
             energy_orbs.add(energy_orb)
 
     def get_score_value(self):
@@ -863,7 +863,7 @@ def manage_waves():
     wave_start_time = pygame.time.get_ticks() + constants['WAVE_DELAY']
 
     if current_wave > 1:
-        chest = Chest(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+        chest = Chest(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2, chest_image)
         all_sprites.add(chest)
     else:
         chest = None
@@ -1083,7 +1083,7 @@ fps_color = constants['GAMMA']
 clock = pygame.time.Clock()
 camera = Camera(constants['WIDTH'], constants['HEIGHT'])
 
-player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2, player_image)
 all_sprites.add(player)
 SPAWN_ZOMBIE = pygame.USEREVENT + 1
 pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
