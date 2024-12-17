@@ -372,7 +372,7 @@ class Player(pygame.sprite.Sprite):
 
         while self.xp >= level_thresholds[self.level + 1]:
             self.level += 1
-            self.xp -= level_thresholds[player.level]
+            self.xp -= level_thresholds[self.level]
             show_upgrade_panel = True
 
 
