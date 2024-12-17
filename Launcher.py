@@ -190,6 +190,16 @@ class Player(pygame.sprite.Sprite):
             self.xp -= LEVEL_THRESHOLDS[self.level]
             show_upgrade_panel = True
 
+    def handle_pickups(self):
+        for orb in energy_orbs:
+            if pygame.sprite.collide_rect(self, orb):
+                orb.kill()
+                self.update_level_and_xp(1)
+        for chest in chests:
+            if pygame.sprite.collide_rect(self, chest):
+                chest.open()
+                unlock_random_weapon()
+
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, angle, speed, penetration, damage, blast_radius=0):
@@ -1092,15 +1102,7 @@ if __name__ == '__main__':
                 pygame.display.flip()
                 continue
 
-            for orb in energy_orbs:
-                if pygame.sprite.collide_rect(player, orb):
-                    orb.kill()
-                    player.update_level_and_xp(1)
-
-            for chest in chests:
-                if pygame.sprite.collide_rect(player, chest):
-                    chest.open()
-                    unlock_random_weapon()
+            player.handle_pickups()
 
             if player.current_weapon.ammo == 0 and not reloading[player.current_weapon.name]:
                 reload_start_time[player.current_weapon.name] = current_time
