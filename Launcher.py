@@ -1079,6 +1079,7 @@ floating_texts = pygame.sprite.Group()
 energy_orbs = pygame.sprite.Group()
 all_zombies_group = pygame.sprite.Group()
 muzzle_flashes = pygame.sprite.Group()
+chest = None
 
 fps_color = constants['GAMMA']
 clock = pygame.time.Clock()
