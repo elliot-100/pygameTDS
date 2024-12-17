@@ -112,12 +112,22 @@ class EnergyOrb(pygame.sprite.Sprite):
 
 
 class Chest(pygame.sprite.Sprite):
-    """Represents a chest that the player can open to get rewards."""
-    def __init__(self, x, y):
+    """Represents a chest that the player can open to get rewards.
+
+    Always spawns at centre of play area."""
+
+    def __init__(self):
         super().__init__()
+        self.x, self.y = constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2
         self.image = chest_image
         self.rect = self.image.get_rect(center=(x, y))
         self.opened = False
+
+    def update(self, player):
+        """Collision handling."""
+        if pygame.sprite.collide_rect(self, player):
+            self.open()
+            unlock_random_weapon()
 
     def open(self):
         """Opens the chest, unlocks a random weapon, and removes it from the game."""
@@ -864,7 +874,7 @@ def manage_waves():
     wave_start_time = pygame.time.get_ticks() + constants['WAVE_DELAY']
 
     if current_wave > 1:
-        chest = Chest(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+        chest = Chest()
         all_sprites.add(chest)
     else:
         chest = None
@@ -1246,11 +1256,6 @@ while running:
             if pygame.sprite.collide_rect(player, orb):
                 orb.kill()
                 player.update_level_and_xp(1)
-
-        if chest and pygame.sprite.collide_rect(player, chest):
-            chest.open()
-            unlock_random_weapon()
-            chest = None
 
         if player.current_weapon.ammo == 0 and not reloading[player.current_weapon.name]:
             reload_start_time[player.current_weapon.name] = current_time
