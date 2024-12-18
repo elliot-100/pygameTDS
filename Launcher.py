@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import pygame
 import sys
 import math
@@ -247,7 +249,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = player_mask
         self.speed = constants['PLAYER_SPEED']
-        self.health = constants['PLAYER_HEALTH']
+        self.max_health = constants['PLAYER_HEALTH']
+        self.health = self.max_health
         self.level = 1
         self.xp = 0
         self.xp_multiplier = 1.0
@@ -331,20 +334,6 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.original_image, -math.degrees(angle))
         self.rect = self.image.get_rect(center=self.rect.center)
         self.mask = pygame.mask.from_surface(self.image)
-
-    def draw_health_bar(self, camera):
-        """Draws the player's health bar on the screen."""
-        bar_length = 30
-        bar_height = 6
-        fill = (self.health / constants['PLAYER_HEALTH']) * bar_length
-        outline_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 20, bar_length, bar_height)
-        fill_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 20, fill, bar_height)
-
-        camera_outline_rect = camera.apply(pygame.Rect(outline_rect))
-        camera_fill_rect = camera.apply(pygame.Rect(fill_rect))
-
-        pygame.draw.rect(screen, constants['NEON'], camera_fill_rect)
-        pygame.draw.rect(screen, constants['WHITE'], camera_outline_rect, 1)
 
     def take_damage(self, amount):
         """Reduces the player's health."""
@@ -612,13 +601,7 @@ class Zombie(pygame.sprite.Sprite):
         if self.health < self.max_health and not self.killed:
             time_since_last_damage = current_time - self.last_damage_time
             if time_since_last_damage < constants['HEALTH_BAR_VISIBLE_DURATION']:
-                bar_length = 30
-                bar_height = 6
-                fill = (self.health / self.max_health) * bar_length
-                outline_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 10, bar_length, bar_height)
-                fill_rect = pygame.Rect(self.rect.centerx - bar_length / 2, self.rect.y - 10, fill, bar_height)
-                pygame.draw.rect(screen, constants['NEON'], camera.apply(fill_rect))
-                pygame.draw.rect(screen, constants['WHITE'], camera.apply(outline_rect), 1)
+                HealthBar(self)
 
     def take_damage(self, amount):
         if not self.killed:
@@ -750,6 +733,36 @@ class FloatingText(pygame.sprite.Sprite):
 
             if fade_progress >= 1:
                 self.kill()
+
+
+class HealthBar(pygame.sprite.Sprite):
+    """Draws a health bar for player or zombie."""
+
+    WIDTH: ClassVar = 30
+    HEIGHT: ClassVar = 6
+    OFFSET_X, OFFSET_Y = -20, -20
+
+    def __init__(self, entity):
+        super().__init__()
+        outline_rect = pygame.Rect(
+            entity.rect.centerx - self.WIDTH / 2,
+            entity.rect.y + self.OFFSET_Y,
+            self.WIDTH,
+            self.HEIGHT,
+        )
+        fill_width = (entity.health / entity.max_health) * self.WIDTH
+        fill_rect = outline_rect.copy()
+        fill_rect.width = fill_width
+        pygame.draw.rect(
+            screen,
+            constants['NEON'],
+            camera.apply(fill_rect)
+        )
+        pygame.draw.rect(
+            screen,
+            constants['WHITE'],
+            camera.apply(outline_rect),
+            1)
 
 
 def manhattan_distance(a, b):
@@ -1405,7 +1418,7 @@ while running:
             auto_fire_text_pos = (player_pos[0], player_pos[1] - -100) 
             screen.blit(auto_fire_text, auto_fire_text_pos)
 
-        player.draw_health_bar(camera)
+        HealthBar(player)
         if reloading[player.current_weapon.name]:
             reload_text = f"Reloading..."
             reload_text_surface = font1.render(reload_text, True, constants['YELLOW'])
