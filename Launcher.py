@@ -1376,7 +1376,6 @@ while running:
         image_rect.topleft = (bg_x, bg_y)
         cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
         screen.blit(cropped_image, (0, 0))
-        screen.blit(cursor.image, mouse_pos)
 
         progress = player.xp / level_thresholds[player.level + 1]
         draw_progress_bar(screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, constants['RED'])
