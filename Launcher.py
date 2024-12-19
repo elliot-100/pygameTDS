@@ -90,16 +90,18 @@ upgrade_options = [
 
 class EnergyOrb(pygame.sprite.Sprite):
     """Represents an energy orb that the player can collect."""
+
+    LIFETIME: ClassVar = 10000000
+
     def __init__(self, x, y):
         super().__init__()
         self.image = orb_image
         self.rect = self.image.get_rect(center=(x, y))
-        self.lifetime = 10000000
         self.spawn_time = pygame.time.get_ticks()
 
     def update(self):
         """Checks if the orb's lifetime has expired and removes it if so."""
-        if pygame.time.get_ticks() - self.spawn_time > self.lifetime:
+        if pygame.time.get_ticks() - self.spawn_time > self.LIFETIME:
             self.kill()
 
 
