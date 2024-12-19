@@ -891,7 +891,7 @@ def render_text(text, font, color, x, y):
 
 
 def manage_waves():
-    global current_wave, zombies_to_spawn, wave_start_time, chest
+    global current_wave, zombies_to_spawn, wave_start_time
 
     current_wave += 1
     print(f"Starting Wave {current_wave}")
@@ -910,10 +910,7 @@ def manage_waves():
     wave_start_time = pygame.time.get_ticks() + constants['WAVE_DELAY']
 
     if current_wave > 1:
-        chest = Chest(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
-        all_sprites.add(chest)
-    else:
-        chest = None
+        chests.add(Chest(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2))
 
 def unlock_random_weapon():
     locked_weapons = []
@@ -962,21 +959,18 @@ def spawn_zombie(zombie_type):
     }
     zombie_class, zombie_image = zombie_classes.get(zombie_type, (ZombieClass.a, zombie_images[0]))
     zombie = Zombie(x, y, player, zombie_image, zombie_class)
-    all_sprites.add(zombie)
     zombies.add(zombie)
 
 def restart_game():
-    global all_sprites, projectiles, zombies, blood_particles, current_wave
+    global current_wave
     current_wave = 0
     player.health = constants['PLAYER_HEALTH']
     player.rect.center = (constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
-    all_sprites.empty()
-    energy_orbs.empty()
-    projectiles.empty()
-    blood_particles.empty()
-    zombies.empty()
-    all_sprites.add(player)
-    floating_texts.empty()
+
+    for group in all_sprites():
+        group.empty()
+
+    players.add(player)
     player.set_initial_weapon()
     player.score = 0
     player.total_kills = 0
@@ -1050,6 +1044,11 @@ def create_projectile(pellet_angle):
     )
 
 
+def all_sprites() -> list[pygame.sprite.Group]:
+    """Returns a list of all sprite groups."""
+    return [energy_orbs, blood_particles, chests, zombies, players, muzzle_flashes, projectiles, floating_texts]
+
+
 pistol = WeaponCategory("pistols", [
     Weapon("Glock(PDW)", 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
 ])
@@ -1117,21 +1116,21 @@ hit_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/splat.mp3')
 reload_sound = pygame.mixer.Sound(BASE_DIR / 'sfx/reload.mp3')
 
 
-all_sprites = pygame.sprite.Group()
 blood_particles = pygame.sprite.Group()
 projectiles = pygame.sprite.Group()
 zombies = pygame.sprite.Group()
 floating_texts = pygame.sprite.Group()
 energy_orbs = pygame.sprite.Group()
-all_zombies_group = pygame.sprite.Group()
 muzzle_flashes = pygame.sprite.Group()
+chests = pygame.sprite.Group()
+players = pygame.sprite.Group()
 
 fps_color = constants['GAMMA']
 clock = pygame.time.Clock()
 camera = Camera(constants['WIDTH'], constants['HEIGHT'])
 
 player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
-all_sprites.add(player)
+players.add(player)
 SPAWN_ZOMBIE = pygame.USEREVENT + 1
 pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
 current_wave = 1
@@ -1268,8 +1267,9 @@ while running:
             screen.blit(cropped_image, (0, 0))
             
             # Then render all game elements
-            for sprite in all_sprites:
-                screen.blit(sprite.image, camera.apply(sprite))
+            for group in all_sprites():
+                for sprite in group:
+                    screen.blit(sprite.image, camera.apply(sprite))
             
             # Now add the semi-transparent overlay
             overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA)
@@ -1287,10 +1287,10 @@ while running:
                 orb.kill()
                 player.update_level_and_xp(1)
 
-        if chest and pygame.sprite.collide_rect(player, chest):
-            chest.open()
-            unlock_random_weapon()
-            chest = None
+        for chest in chests:
+            if pygame.sprite.collide_rect(player, chest):
+                chest.open()
+                unlock_random_weapon()
 
         if player.current_weapon.ammo == 0 and not reloading[player.current_weapon.name]:
             reload_start_time[player.current_weapon.name] = current_time
@@ -1387,24 +1387,10 @@ while running:
         progress = player.xp / level_thresholds[player.level + 1]
         draw_progress_bar(screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, constants['RED'])
 
-        for orb in energy_orbs:
-            screen.blit(orb.image, camera.apply(orb))
-        
-        for particle in blood_particles:
-            screen.blit(particle.image, camera.apply(particle))
-            
-        for sprite in all_sprites:
-            screen.blit(sprite.image, camera.apply(sprite))
-        
-        for flash in muzzle_flashes:
-            screen.blit(flash.image, camera.apply(flash))
-        
-        for projectile in projectiles:
-            screen.blit(projectile.image, camera.apply(projectile))
-        
-        for text in floating_texts:
-            screen.blit(text.image, camera.apply(text))
-        
+        for group in all_sprites():
+            for sprite in group:
+                screen.blit(sprite.image, camera.apply(sprite))
+
         for zombie in zombies:
             zombie.draw_health_bar(camera)
             if pygame.sprite.collide_mask(player, zombie):
