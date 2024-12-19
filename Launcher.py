@@ -52,26 +52,19 @@ constants = {
     'WHITE': (255, 255, 255),
     'RED': (255, 0, 0),
     'BLACK': (0, 0, 0),
+    'BRIGHT_GREEN': (0, 0, 255),
     'GREEN': (96, 144, 120),
     'NEON': (57, 255, 20),
     'YELLOW': (255, 255, 0),
     'GAMMA': (74, 254, 2),
     'BLUE': (0, 0, 255),
     'DARK_RED': (158,3,3),
+    'ORANGE': (255, 128, 0),
     'SMALL_CIRCLE_LIFETIME': 9999,
     'FPS': 60,
     'VIRTUAL_WIDTH': 2020,
     'VIRTUAL_HEIGHT': 1180,
 }
-
-constants.update({
-    'PENETRATION_COLORS': [
-        (255, 0, 0),
-        (255, 128, 0),
-        (255, 255, 0),
-        (0, 255, 0),
-    ]
-})
 
 upgrade_options = [
     "HP +20%",
@@ -358,6 +351,14 @@ class Player(pygame.sprite.Sprite):
 
 
 class Projectile(pygame.sprite.Sprite):
+
+    PENETRATION_COLORS: ClassVar = [
+        constants['RED'],
+        constants['ORANGE'],
+        constants['YELLOW'],
+        constants['BRIGHT_GREEN'],
+    ]
+
     def __init__(self, x, y, angle, speed, penetration, damage, blast_radius=0):
         super().__init__()
         self.image = pygame.Surface((3, 3))
@@ -397,8 +398,8 @@ class Projectile(pygame.sprite.Sprite):
 
     def get_penetration_color(self):
         hit_count = len(self.zombies_hit)
-        color_index = min(hit_count, len(constants['PENETRATION_COLORS']) - 1)
-        return constants['PENETRATION_COLORS'][color_index]
+        color_index = min(hit_count, len(self.PENETRATION_COLORS) - 1)
+        return self.PENETRATION_COLORS[color_index]
 
     def reduce_penetration(self, zombie):
         if zombie not in self.zombies_hit:
