@@ -60,8 +60,6 @@ constants = {
     'DARK_RED': (158,3,3),
     'SMALL_CIRCLE_LIFETIME': 9999,
     'FPS': 60,
-    'BLOOD_SPRAY_PARTICLES': 5,
-    'BLOOD_SPRAY_LIFETIME': 100000,
     'VIRTUAL_WIDTH': 2020,
     'VIRTUAL_HEIGHT': 1180,
 }
@@ -391,7 +389,7 @@ class Projectile(pygame.sprite.Sprite):
                     damage_text = FloatingText(zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color)
                     floating_texts.add(damage_text)
 
-                    for _ in range(constants['BLOOD_SPRAY_PARTICLES']):
+                    for _ in range(BloodParticle.PARTICLES_PER_SPRAY):
                         angle = random.uniform(0, 2 * math.pi)
                         speed = random.uniform(0.7, 1.5)
                         blood_particle = BloodParticle(zombie.rect.center, angle, speed)
@@ -665,6 +663,10 @@ class Zombie(pygame.sprite.Sprite):
             pygame.mixer.Sound.play(hit_sound)
 
 class BloodParticle(pygame.sprite.Sprite):
+
+    PARTICLES_PER_SPRAY: ClassVar = 5
+    LIFETIME: ClassVar = 100000
+
     def __init__(self, pos, angle, speed):
         super().__init__()
         self.image = pygame.Surface((random.randint(1, 5), random.randint(1, 5)))
@@ -674,7 +676,6 @@ class BloodParticle(pygame.sprite.Sprite):
         self.dy = speed * math.sin(angle) * -1
         self.gravity = 0.0
         self.spawn_time = pygame.time.get_ticks()
-        self.lifetime = constants['BLOOD_SPRAY_LIFETIME']
         self.alpha = 255
 
     def update(self):
@@ -685,8 +686,8 @@ class BloodParticle(pygame.sprite.Sprite):
         self.dy *= 0.98
         
         elapsed_time = pygame.time.get_ticks() - self.spawn_time
-        if elapsed_time < self.lifetime:
-            self.alpha = int(255 * (1 - elapsed_time / self.lifetime))
+        if elapsed_time < self.LIFETIME:
+            self.alpha = int(255 * (1 - elapsed_time / self.LIFETIME))
             self.image.set_alpha(self.alpha)
         else:
             self.kill()
@@ -1368,7 +1369,7 @@ while running:
                     floating_texts.add(damage_text)
                     projectile.reduce_penetration(zombie)
             
-                    for _ in range(constants['BLOOD_SPRAY_PARTICLES']):
+                    for _ in range(BloodParticle.PARTICLES_PER_SPRAY):
                         angle = random.uniform(0, 2 * math.pi)
                         speed = random.uniform(0.7, 1.5)
                         blood_particle = BloodParticle(zombie.rect.center, angle, speed)
