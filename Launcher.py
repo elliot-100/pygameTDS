@@ -58,12 +58,10 @@ constants = {
     'GAMMA': (74, 254, 2),
     'BLUE': (0, 0, 255),
     'DARK_RED': (158,3,3),
-    'PLAYER_SPEED': 0.7,
     'SMALL_CIRCLE_LIFETIME': 9999,
     'FPS': 60,
     'BLOOD_SPRAY_PARTICLES': 5,
     'BLOOD_SPRAY_LIFETIME': 100000,
-    'PLAYER_HEALTH': 7500,
     'VIRTUAL_WIDTH': 2020,
     'VIRTUAL_HEIGHT': 1180,
 }
@@ -234,14 +232,18 @@ class MuzzleFlash(pygame.sprite.Sprite):
 
 class Player(pygame.sprite.Sprite):
     """Represents the player character."""
+
+    INITIAL_SPEED: ClassVar = 0.7
+    MAX_HEALTH: ClassVar = 7500
+
     def __init__(self, x, y):
         super().__init__()
         self.original_image = player_image
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = player_mask
-        self.speed = constants['PLAYER_SPEED']
-        self.max_health = constants['PLAYER_HEALTH']
+        self.speed = self.INITIAL_SPEED
+        self.max_health = self.MAX_HEALTH
         self.health = self.max_health
         self.level = 1
         self.xp = 0
