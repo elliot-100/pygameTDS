@@ -58,20 +58,12 @@ constants = {
     'GAMMA': (74, 254, 2),
     'BLUE': (0, 0, 255),
     'DARK_RED': (158,3,3),
-    'ZOMBIE_RADIUS': 0.1,
     'PLAYER_SPEED': 0.7,
-    'SPAWN_INTERVAL': 450,
     'SMALL_CIRCLE_LIFETIME': 9999,
     'FPS': 60,
-    'ZOMBIE_FADE_DURATION': 150,
-    'MAX_ALIVE_ZOMBIES': 100,
-    'HEALTH_BAR_VISIBLE_DURATION': 120,
     'BLOOD_SPRAY_PARTICLES': 5,
     'BLOOD_SPRAY_LIFETIME': 100000,
     'PLAYER_HEALTH': 7500,
-    'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
-    'ZOMBIE_AVOIDANCE_RADIUS': 5,
-    'WAVE_DELAY': 10000,
     'VIRTUAL_WIDTH': 2020,
     'VIRTUAL_HEIGHT': 1180,
 }
@@ -431,6 +423,14 @@ class ZombieClass:
     k = {'HEALTH': 444, 'SPEED': 2.0}
 
 class Zombie(pygame.sprite.Sprite):
+
+    AVOIDANCE_RADIUS: ClassVar = 5
+    FADE_DURATION: ClassVar = 150
+    HEALTH_BAR_VISIBLE_DURATION: ClassVar = 120
+    MAX_ALIVE: ClassVar = 100
+    SPAWN_INTERVAL: ClassVar = 450
+    WAVE_DELAY: ClassVar = 10000
+
     def __init__(self, x, y, player, zombie_image, zombie_class):
         super().__init__()
         self.original_image = zombie_image
@@ -447,7 +447,6 @@ class Zombie(pygame.sprite.Sprite):
         self.last_damage_time = 0
         self.roaming = True
         self.roaming_target = self.get_new_roaming_target()
-        self.detect_radius = 12.5
         self.killed = False
         hitbox_size = int(self.rect.width * 0.5)
         self.hitbox = pygame.Rect(0, 0, hitbox_size, hitbox_size)
@@ -484,7 +483,7 @@ class Zombie(pygame.sprite.Sprite):
             self.fade_out()
         elif not self.fading:
             current_time = pygame.time.get_ticks()
-            if self.show_health_bar and current_time - self.last_damage_time > constants['HEALTH_BAR_VISIBLE_DURATION']:
+            if self.show_health_bar and current_time - self.last_damage_time > self.HEALTH_BAR_VISIBLE_DURATION:
                 self.show_health_bar = False
             if current_time - self.last_path_update > self.path_update_interval:
                 self.update_path()
@@ -570,7 +569,7 @@ class Zombie(pygame.sprite.Sprite):
         for other_zombie in zombies:
             if other_zombie != self:
                 distance = pygame.math.Vector2(self.rect.center) - pygame.math.Vector2(other_zombie.rect.center)
-                if 0 < distance.length() < constants['ZOMBIE_AVOIDANCE_RADIUS']:
+                if 0 < distance.length() < self.AVOIDANCE_RADIUS:
                     avoidance_force += distance.normalize()
         
         if avoidance_force.length() > 0:
@@ -598,7 +597,7 @@ class Zombie(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if self.health < self.max_health and not self.killed:
             time_since_last_damage = current_time - self.last_damage_time
-            if time_since_last_damage < constants['HEALTH_BAR_VISIBLE_DURATION']:
+            if time_since_last_damage < self.HEALTH_BAR_VISIBLE_DURATION:
                 HealthBar(self)
 
     def take_damage(self, amount):
@@ -654,8 +653,8 @@ class Zombie(pygame.sprite.Sprite):
     def fade_out(self):
         current_time = pygame.time.get_ticks()
         elapsed_time = current_time - self.fade_start_time
-        if elapsed_time < constants['ZOMBIE_FADE_DURATION']:
-            alpha = 255 - (elapsed_time / constants['ZOMBIE_FADE_DURATION']) * 255
+        if elapsed_time < self.FADE_DURATION:
+            alpha = 255 - (elapsed_time / self.FADE_DURATION) * 255
             self.image.set_alpha(alpha)
         else:
             self.kill()
@@ -900,12 +899,12 @@ def manage_waves():
     zombies_to_spawn = []
     for zombie_type, count in zombie_distribution:
         while count > 0:
-            spawn_count = min(count, constants['MAX_ALIVE_ZOMBIES'])
+            spawn_count = min(count, Zombie.MAX_ALIVE)
             zombies_to_spawn.append((zombie_type, spawn_count))
             count -= spawn_count
 
-    pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
-    wave_start_time = pygame.time.get_ticks() + constants['WAVE_DELAY']
+    pygame.time.set_timer(SPAWN_ZOMBIE, Zombie.SPAWN_INTERVAL)
+    wave_start_time = pygame.time.get_ticks() + Zombie.WAVE_DELAY
 
     if current_wave > 1:
         chests.add(Chest(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2))
@@ -1130,7 +1129,7 @@ camera = Camera(constants['WIDTH'], constants['HEIGHT'])
 player = Player(constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
 players.add(player)
 SPAWN_ZOMBIE = pygame.USEREVENT + 1
-pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
+pygame.time.set_timer(SPAWN_ZOMBIE, Zombie.SPAWN_INTERVAL)
 current_wave = 1
 zombies_to_spawn = []
 
@@ -1235,8 +1234,8 @@ while running:
             if current_time >= wave_start_time:
                 if wave_delay_active:
                     wave_delay_active = False
-                if current_time - last_spawn_time >= constants['SPAWN_INTERVAL']:
-                    if zombies_to_spawn and len(zombies) < constants['MAX_ALIVE_ZOMBIES']:
+                if current_time - last_spawn_time >= Zombie.SPAWN_INTERVAL:
+                    if zombies_to_spawn and len(zombies) < Zombie.MAX_ALIVE:
                         zombie_type, count = random.choice(zombies_to_spawn)
                         spawn_zombie(zombie_type)
                         count -= 1
