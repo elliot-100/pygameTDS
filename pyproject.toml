@@ -16,6 +16,7 @@ dev = [
 select = [
     "E",  # pycodestyle
     "F",  # Pyflakes
+    "I",  # isort
     "W",  # pycodestyle warnings
 ]
 ignore = [

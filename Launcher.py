@@ -1,12 +1,12 @@
+import heapq
+import math
+import random
+import sys
+from collections import defaultdict
+from pathlib import Path
 from typing import ClassVar
 
 import pygame
-import sys
-import math
-import random
-import heapq
-from collections import defaultdict
-from pathlib import Path
 
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     BASE_DIR = Path(sys._MEIPASS)
