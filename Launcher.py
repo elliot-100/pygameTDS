@@ -765,6 +765,40 @@ class HealthBar(pygame.sprite.Sprite):
             1)
 
 
+class Cursor(pygame.sprite.Sprite):
+    """Implements gunsight/cursor."""
+
+    OUTER_RADIUS: ClassVar = 20
+    INNER_RADIUS: ClassVar = 2
+
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface(
+            size=(2 * self.OUTER_RADIUS, 2 * self.OUTER_RADIUS),
+            flags=pygame.SRCALPHA,
+        )
+        self.rect = self.image.get_rect()
+        center = self.rect.center
+        pygame.draw.circle(
+            surface=self.image,
+            color=constants['WHITE'],
+            center=center,
+            radius=self.OUTER_RADIUS,
+            width=2)
+        pygame.draw.circle(
+            surface=self.image,
+            color=constants['RED'],
+            center=center,
+            radius=self.INNER_RADIUS)
+
+    def draw(self, *, surface, center_pos):
+        """Blit to `surface`, centered on `center_pos`."""
+
+        surface.blit(
+            self.image, (center_pos[0] - self.OUTER_RADIUS, center_pos[1] - self.OUTER_RADIUS)
+        )
+
+
 def manhattan_distance(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
@@ -1103,12 +1137,9 @@ pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
 current_wave = 1
 zombies_to_spawn = []
 
-CURSOR_IMG = pygame.Surface((40, 40), pygame.SRCALPHA)
-pygame.draw.circle(CURSOR_IMG, pygame.Color('white'), (20, 20), 20, 2)
-pygame.draw.circle(CURSOR_IMG, pygame.Color('white'), (20, 20), 2)
-pygame.draw.circle(CURSOR_IMG, pygame.Color('red'), (20, 20), 2) 
-cursor_rect = CURSOR_IMG.get_rect()
+cursor = Cursor()
 pygame.mouse.set_visible(False)
+
 render_upgrade_panel()
 running = True
 game_state = 'main_menu'
@@ -1130,6 +1161,7 @@ auto_firing = False
 show_upgrade_panel = False
 
 while running:
+    mouse_pos = pygame.mouse.get_pos()
     adjusted_mouse_pos = get_adjusted_mouse_pos(camera)
     keys = pygame.key.get_pressed()
     dt = clock.tick(constants['FPS']) / 1000.0
@@ -1139,15 +1171,12 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.MOUSEMOTION:
-            cursor_rect.center = event.pos
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 3:  
                 auto_firing = not auto_firing
                 print("Auto-firing mode enabled" if auto_firing else "Auto-firing mode disabled")
             elif event.button == 1 and show_upgrade_panel:
-                mouse_pos = pygame.mouse.get_pos()
-                
+
                 panel_width = 1600
                 panel_height = 900
                 panel_x = (1920 - panel_width) // 2
@@ -1248,7 +1277,7 @@ while running:
             screen.blit(overlay, (0, 0))
             
             option_rects = render_upgrade_panel()
-            screen.blit(CURSOR_IMG, cursor_rect)
+            cursor.draw(surface=screen, center_pos=mouse_pos)
             pygame.display.flip()
             continue
 
@@ -1354,7 +1383,7 @@ while running:
         image_rect.topleft = (bg_x, bg_y)
         cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
         screen.blit(cropped_image, (0, 0))
-        screen.blit(CURSOR_IMG, cursor_rect)
+        cursor.draw(surface=screen, center_pos=mouse_pos)
 
         progress = player.xp / level_thresholds[player.level + 1]
         draw_progress_bar(screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, constants['RED'])
@@ -1441,7 +1470,7 @@ while running:
     elif game_state == 'credits':
         render_credits()
 
-    screen.blit(CURSOR_IMG, cursor_rect)
+    cursor.draw(surface=screen, center_pos=mouse_pos)
     pygame.display.flip()
 
 pygame.quit()
