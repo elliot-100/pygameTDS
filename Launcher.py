@@ -327,8 +327,6 @@ class Player(pygame.sprite.Sprite):
         angle = math.atan2(mouse_pos[1] - self.rect.centery, mouse_pos[0] - self.rect.centerx)
         self.rotate(angle)
 
-        print(f"dx: {self.dx}, dy: {self.dy}")
-
     def rotate(self, angle):
         """Rotates the player's image."""
         self.image = pygame.transform.rotate(self.original_image, -math.degrees(angle))
