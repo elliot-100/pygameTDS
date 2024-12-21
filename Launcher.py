@@ -10,7 +10,7 @@ import pygame
 
 from src.blood_particle import BloodParticle
 from src.chest import Chest
-from src.constants import COLORS, LEVEL_THRESHOLDS, PENETRATION_COLORS
+from src.constants import COLORS, GAME_AREA, LEVEL_THRESHOLDS, PENETRATION_COLORS, WINDOW
 from src.cursor import Cursor
 from src.energy_orb import EnergyOrb
 from src.floating_text import FloatingText
@@ -23,8 +23,6 @@ else:
     BASE_DIR = Path(__file__).parent
 
 constants = {
-    'WIDTH': 1920,
-    'HEIGHT': 1080,
     'ZOMBIE_RADIUS': 0.1,
     'PLAYER_SPEED': 0.7,
     'SPAWN_INTERVAL': 450,
@@ -37,8 +35,6 @@ constants = {
     'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
     'ZOMBIE_AVOIDANCE_RADIUS': 5,
     'WAVE_DELAY': 10000,
-    'VIRTUAL_WIDTH': 2020,
-    'VIRTUAL_HEIGHT': 1180,
 }
 upgrade_options = [
     'HP +20%',
@@ -69,13 +65,13 @@ class Camera:
 
     def update(self, target):
         """Updates the camera's position to follow the target."""
-        x = -target.rect.centerx + int(constants['WIDTH'] / 2)
-        y = -target.rect.centery + int(constants['HEIGHT'] / 2)
+        x = -target.rect.centerx + int(WINDOW['WIDTH'] / 2)
+        y = -target.rect.centery + int(WINDOW['HEIGHT'] / 2)
 
         x = min(0, x)
         y = min(0, y)
-        x = max(-(constants['VIRTUAL_WIDTH'] - constants['WIDTH']), x)
-        y = max(-(constants['VIRTUAL_HEIGHT'] - constants['HEIGHT']), y)
+        x = max(-(GAME_AREA['WIDTH'] - WINDOW['WIDTH']), x)
+        y = max(-(GAME_AREA['HEIGHT'] - WINDOW['HEIGHT']), y)
 
         self.rect.topleft = (x, y)
 
@@ -160,9 +156,9 @@ class Player(pygame.sprite.Sprite):
         new_x = self.rect.x + self.dx
         new_y = self.rect.y + self.dy
 
-        if 0 <= new_x < constants['VIRTUAL_WIDTH'] - self.rect.width:
+        if 0 <= new_x < GAME_AREA['WIDTH'] - self.rect.width:
             self.rect.x = new_x
-        if 0 <= new_y < constants['VIRTUAL_HEIGHT'] - self.rect.height:
+        if 0 <= new_y < GAME_AREA['HEIGHT'] - self.rect.height:
             self.rect.y = new_y
 
         angle = math.atan2(mouse_pos[1] - self.rect.centery, mouse_pos[0] - self.rect.centerx)
@@ -225,7 +221,7 @@ class Projectile(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += self.dx
         self.rect.y += self.dy
-        if not pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']).colliderect(self.rect):
+        if not pygame.Rect(0, 0, GAME_AREA['WIDTH'], GAME_AREA['HEIGHT']).colliderect(self.rect):
             self.kill()
         else:
             for zombie in zombies:
@@ -301,7 +297,7 @@ class Zombie(pygame.sprite.Sprite):
         hitbox_size = int(self.rect.width * 0.5)
         self.hitbox = pygame.Rect(0, 0, hitbox_size, hitbox_size)
         self.hitbox.center = self.rect.center
-        self.grid_size = (constants['VIRTUAL_WIDTH'] // 16, constants['VIRTUAL_HEIGHT'] // 16)
+        self.grid_size = (GAME_AREA['WIDTH'] // 16, GAME_AREA['HEIGHT'] // 16)
         self.path = []
         self.path_update_interval = 1500
         self.path_update_offset = random.randint(0, self.path_update_interval)
@@ -324,7 +320,7 @@ class Zombie(pygame.sprite.Sprite):
         return 'a'
 
     def get_new_roaming_target(self):
-        return random.randint(0, constants['VIRTUAL_WIDTH']), random.randint(0, constants['VIRTUAL_HEIGHT'])
+        return random.randint(0, GAME_AREA['WIDTH']), random.randint(0, GAME_AREA['HEIGHT'])
 
     def update(self):
         self.last_damage_time = pygame.time.get_ticks()
@@ -439,7 +435,7 @@ class Zombie(pygame.sprite.Sprite):
             self.rect.y += avoidance_force.y
 
     def check_boundaries(self):
-        self.rect.clamp_ip(pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']))
+        self.rect.clamp_ip(pygame.Rect(0, 0, GAME_AREA['WIDTH'], GAME_AREA['HEIGHT']))
 
     def rotate_to_target(self):
         if self.path:
@@ -566,14 +562,14 @@ def get_neighbors(pos, grid_size):
 
 def render_upgrade_panel():
     # Create semi-transparent overlay for the whole screen
-    overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA)
+    overlay = pygame.Surface((WINDOW['WIDTH'], WINDOW['HEIGHT']), pygame.SRCALPHA)
     overlay.fill((0, 0, 0, 180))  # Black with alpha=180
     screen.blit(overlay, (0, 0))
 
     panel_width = 900
     panel_height = 450
-    panel_x = (constants['WIDTH'] - panel_width) // 2
-    panel_y = (constants['HEIGHT'] - panel_height) // 2
+    panel_x = (WINDOW['WIDTH'] - panel_width) // 2
+    panel_y = (WINDOW['HEIGHT'] - panel_height) // 2
 
     # Create semi-transparent panel surface with alpha channel
     panel = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
@@ -671,8 +667,8 @@ def manage_waves():
     if current_wave > 1:
         chests.add(
             Chest(
-                x=constants['VIRTUAL_WIDTH'] // 2,
-                y=constants['VIRTUAL_HEIGHT'] // 2,
+                x=GAME_AREA['WIDTH'] // 2,
+                y=GAME_AREA['HEIGHT'] // 2,
                 image=chest_image,
             )
         )
@@ -705,13 +701,13 @@ def calculate_zombies(wave):
 def spawn_zombie(zombie_type):
     spawn_side = random.choice(['top', 'bottom', 'left', 'right'])
     if spawn_side == 'top':
-        x, y = random.randint(50, constants['VIRTUAL_WIDTH']), 50
+        x, y = random.randint(50, GAME_AREA['WIDTH']), 50
     elif spawn_side == 'bottom':
-        x, y = random.randint(50, constants['VIRTUAL_WIDTH']), constants['VIRTUAL_HEIGHT']
+        x, y = random.randint(50, GAME_AREA['WIDTH']), GAME_AREA['HEIGHT']
     elif spawn_side == 'left':
-        x, y = 0, random.randint(50, constants['VIRTUAL_HEIGHT'])
+        x, y = 0, random.randint(50, GAME_AREA['HEIGHT'])
     else:
-        x, y = constants['VIRTUAL_WIDTH'], random.randint(50, constants['VIRTUAL_HEIGHT'])
+        x, y = GAME_AREA['WIDTH'], random.randint(50, GAME_AREA['HEIGHT'])
     zombie_classes = {
         'a': (ZombieClass.a, zombie_images[0]),
         'b': (ZombieClass.b, zombie_images[1]),
@@ -734,7 +730,7 @@ def restart_game():
     global current_wave
     current_wave = 0
     player.health = constants['PLAYER_HEALTH']
-    player.rect.center = (constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+    player.rect.center = (GAME_AREA['WIDTH'] // 2, GAME_AREA['HEIGHT'] // 2)
 
     for group in all_sprites():
         group.empty()
@@ -770,7 +766,7 @@ def draw_progress_bar(surface, x, y, width, height, progress, color):
 
 
 def render_text_screen(content):
-    max_x, max_y = constants['WIDTH'], constants['HEIGHT']
+    max_x, max_y = WINDOW['WIDTH'], WINDOW['HEIGHT']
     center_x, center_y = max_x // 2, max_y // 2
     base_left_margin = 100
     left_margin = base_left_margin
@@ -898,7 +894,7 @@ if __name__ == '__main__':
     weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
     blood_font = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
 
-    screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
+    screen = pygame.display.set_mode((WINDOW['WIDTH'], WINDOW['HEIGHT']))
     pygame.display.set_caption('TBBP Game')
 
     player_image = pygame.image.load(BASE_DIR / 'images/player.png').convert_alpha()
@@ -933,10 +929,10 @@ if __name__ == '__main__':
 
     fps_color = COLORS['GAMMA']
     clock = pygame.time.Clock()
-    camera = Camera(constants['WIDTH'], constants['HEIGHT'])
+    camera = Camera(WINDOW['WIDTH'], WINDOW['HEIGHT'])
     player = Player(
-        x=constants['VIRTUAL_WIDTH'] // 2,
-        y=constants['VIRTUAL_HEIGHT'] // 2,
+        x=GAME_AREA['WIDTH'] // 2,
+        y=GAME_AREA['HEIGHT'] // 2,
         image=player_image,
     )
     players.add(player)
@@ -1086,10 +1082,8 @@ if __name__ == '__main__':
                 # Draw the game world first
                 bg_x = -camera.rect.x
                 bg_y = -camera.rect.y
-                scaled_background = pygame.transform.scale(
-                    background_image, (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
-                )
-                screen_rect = pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+                scaled_background = pygame.transform.scale(background_image, (GAME_AREA['WIDTH'], GAME_AREA['HEIGHT']))
+                screen_rect = pygame.Rect(0, 0, GAME_AREA['WIDTH'], GAME_AREA['HEIGHT'])
                 image_rect = scaled_background.get_rect()
                 image_rect.topleft = (bg_x, bg_y)
                 cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
@@ -1101,7 +1095,7 @@ if __name__ == '__main__':
                         screen.blit(sprite.image, camera.apply(sprite))
 
                 # Now add the semi-transparent overlay
-                overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA)
+                overlay = pygame.Surface((WINDOW['WIDTH'], WINDOW['HEIGHT']), pygame.SRCALPHA)
                 overlay.fill((0, 0, 0, 75))  # Adjust alpha value (128) for desired transparency
                 screen.blit(overlay, (0, 0))
 
@@ -1219,19 +1213,15 @@ if __name__ == '__main__':
 
             bg_x = -camera.rect.x
             bg_y = -camera.rect.y
-            scaled_background = pygame.transform.scale(
-                background_image, (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
-            )
-            screen_rect = pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+            scaled_background = pygame.transform.scale(background_image, (GAME_AREA['WIDTH'], GAME_AREA['HEIGHT']))
+            screen_rect = pygame.Rect(0, 0, GAME_AREA['WIDTH'], GAME_AREA['HEIGHT'])
             image_rect = scaled_background.get_rect()
             image_rect.topleft = (bg_x, bg_y)
             cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
             screen.blit(cropped_image, (0, 0))
 
             progress = player.xp / LEVEL_THRESHOLDS[player.level + 1]
-            draw_progress_bar(
-                screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, COLORS['RED']
-            )
+            draw_progress_bar(screen, 10, WINDOW['HEIGHT'] - 30, WINDOW['WIDTH'] - 20, 20, progress, COLORS['RED'])
 
             for group in all_sprites():
                 for sprite in group:
@@ -1250,13 +1240,13 @@ if __name__ == '__main__':
             render_text(f'Time: {elapsed_time:.2f} s', base_font, 475, 10)
             render_text(f'Wave: {current_wave}', base_font, 700, 10)
             render_text(f'Score: {player.score}', score_font, 875, 10)
-            render_text(f'FPS: {int(clock.get_fps())}', fps_font, constants['WIDTH'] - 140, 10, COLORS['GAMMA'])
+            render_text(f'FPS: {int(clock.get_fps())}', fps_font, WINDOW['WIDTH'] - 140, 10, COLORS['GAMMA'])
             render_text(f'Total Kills: {player.total_kills} (Remaining: {len(zombies)})', base_font, 10, 10)
 
             version_text = 'Alpha 1.02'
             version_surface = base_font.render(version_text, True, COLORS['WHITE'])
             version_rect = version_surface.get_rect()
-            version_rect.bottomright = (constants['WIDTH'] - 10, constants['HEIGHT'] - 40)
+            version_rect.bottomright = (WINDOW['WIDTH'] - 10, WINDOW['HEIGHT'] - 40)
             screen.blit(version_surface, version_rect)
 
             player_pos = camera.apply(player).topleft
