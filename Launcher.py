@@ -10,7 +10,7 @@ import pygame
 
 from src.blood_particle import BloodParticle
 from src.chest import Chest
-from src.constants import COLORS, PENETRATION_COLORS
+from src.constants import COLORS, LEVEL_THRESHOLDS, PENETRATION_COLORS
 from src.cursor import Cursor
 from src.energy_orb import EnergyOrb
 from src.floating_text import FloatingText
@@ -21,39 +21,6 @@ if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     BASE_DIR = Path(sys._MEIPASS)
 else:
     BASE_DIR = Path(__file__).parent
-
-level_thresholds = {
-    1: 0,
-    2: 90,
-    3: 180,
-    4: 280,
-    5: 390,
-    6: 515,
-    7: 655,
-    8: 810,
-    9: 980,
-    10: 1170,
-    11: 1380,
-    12: 1615,
-    13: 1875,
-    14: 2155,
-    15: 2465,
-    16: 2805,
-    17: 3175,
-    18: 3580,
-    19: 4020,
-    20: 4500,
-    21: 5025,
-    22: 5600,
-    23: 6225,
-    24: 6905,
-    25: 7645,
-    26: 8450,
-    27: 9325,
-    28: 10275,
-    29: 11305,
-    30: 12425,
-}
 
 constants = {
     'WIDTH': 1920,
@@ -233,9 +200,9 @@ class Player(pygame.sprite.Sprite):
 
         self.xp += xp_gained
 
-        while self.xp >= level_thresholds[self.level + 1]:
+        while self.xp >= LEVEL_THRESHOLDS[self.level + 1]:
             self.level += 1
-            self.xp -= level_thresholds[self.level]
+            self.xp -= LEVEL_THRESHOLDS[self.level]
             show_upgrade_panel = True
 
 
@@ -797,7 +764,7 @@ def draw_progress_bar(surface, x, y, width, height, progress, color):
     level_text = base_font.render(f'Brain Power: {player.level}', True, COLORS['WHITE'])
     level_text_rect = level_text.get_rect(midleft=(x + 10, y + height // 2))
     surface.blit(level_text, level_text_rect)
-    xp_text = base_font.render(f'{player.xp}/{level_thresholds[player.level + 1]}', True, COLORS['WHITE'])
+    xp_text = base_font.render(f'{player.xp}/{LEVEL_THRESHOLDS[player.level + 1]}', True, COLORS['WHITE'])
     xp_text_rect = xp_text.get_rect(midright=(x + width - 10, y + height // 2))
     surface.blit(xp_text, xp_text_rect)
 
@@ -1261,7 +1228,7 @@ if __name__ == '__main__':
             cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
             screen.blit(cropped_image, (0, 0))
 
-            progress = player.xp / level_thresholds[player.level + 1]
+            progress = player.xp / LEVEL_THRESHOLDS[player.level + 1]
             draw_progress_bar(
                 screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, COLORS['RED']
             )
