@@ -8,6 +8,7 @@ from typing import ClassVar
 
 import pygame
 
+from src.blood_particle import BloodParticle
 from src.constants import COLORS, PENETRATION_COLORS
 from src.cursor import Cursor
 from src.muzzle_flash import MuzzleFlash
@@ -62,8 +63,6 @@ constants = {
     'ZOMBIE_FADE_DURATION': 150,
     'MAX_ALIVE_ZOMBIES': 100,
     'HEALTH_BAR_VISIBLE_DURATION': 120,
-    'BLOOD_SPRAY_PARTICLES': 5,
-    'BLOOD_SPRAY_LIFETIME': 100000,
     'PLAYER_HEALTH': 7500,
     'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
     'ZOMBIE_AVOIDANCE_RADIUS': 5,
@@ -302,7 +301,7 @@ class Projectile(pygame.sprite.Sprite):
                     damage_text = FloatingText(zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color)
                     floating_texts.add(damage_text)
 
-                    for _ in range(constants['BLOOD_SPRAY_PARTICLES']):
+                    for _ in range(BloodParticle.PARTICLES_PER_SPRAY):
                         angle = random.uniform(0, 2 * math.pi)
                         speed = random.uniform(0.7, 1.5)
                         blood_particle = BloodParticle(zombie.rect.center, angle, speed)
@@ -576,34 +575,6 @@ class Zombie(pygame.sprite.Sprite):
         else:
             self.kill()
             pygame.mixer.Sound.play(hit_sound)
-
-
-class BloodParticle(pygame.sprite.Sprite):
-    def __init__(self, pos, angle, speed):
-        super().__init__()
-        self.image = pygame.Surface((random.randint(1, 5), random.randint(1, 5)))
-        self.image.fill(COLORS['RED'])
-        self.rect = self.image.get_rect(center=pos)
-        self.dx = speed * math.cos(angle) * -1
-        self.dy = speed * math.sin(angle) * -1
-        self.gravity = 0.0
-        self.spawn_time = pygame.time.get_ticks()
-        self.lifetime = constants['BLOOD_SPRAY_LIFETIME']
-        self.alpha = 255
-
-    def update(self):
-        self.rect.x += self.dx
-        self.rect.y += self.dy
-        self.dy += self.gravity
-        self.dx *= 0.98
-        self.dy *= 0.98
-
-        elapsed_time = pygame.time.get_ticks() - self.spawn_time
-        if elapsed_time < self.lifetime:
-            self.alpha = int(255 * (1 - elapsed_time / self.lifetime))
-            self.image.set_alpha(self.alpha)
-        else:
-            self.kill()
 
 
 class FloatingText(pygame.sprite.Sprite):
@@ -1326,7 +1297,7 @@ if __name__ == '__main__':
                         floating_texts.add(damage_text)
                         projectile.reduce_penetration(zombie)
 
-                        for _ in range(constants['BLOOD_SPRAY_PARTICLES']):
+                        for _ in range(BloodParticle.PARTICLES_PER_SPRAY):
                             angle = random.uniform(0, 2 * math.pi)
                             speed = random.uniform(0.7, 1.5)
                             blood_particle = BloodParticle(zombie.rect.center, angle, speed)
