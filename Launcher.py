@@ -9,6 +9,7 @@ from typing import ClassVar
 import pygame
 
 from src.blood_particle import BloodParticle
+from src.chest import Chest
 from src.constants import COLORS, PENETRATION_COLORS
 from src.cursor import Cursor
 from src.energy_orb import EnergyOrb
@@ -82,21 +83,6 @@ upgrade_options = [
     'Increase XP Gain',
     'a Random Weapon',
 ]
-
-
-class Chest(pygame.sprite.Sprite):
-    """Represents a chest that the player can open to get rewards."""
-
-    def __init__(self, x, y, image):
-        super().__init__()
-        self.image = image
-        self.rect = self.image.get_rect(center=(x, y))
-        self.opened = False
-
-    def open(self):
-        """Opens the chest, unlocks a random weapon, and removes it from the game."""
-        self.opened = True
-        self.kill()
 
 
 class Camera:
