@@ -429,7 +429,8 @@ class Zombie(pygame.sprite.Sprite):
         if self.health < self.max_health and not self.killed:
             time_since_last_damage = current_time - self.last_damage_time
             if time_since_last_damage < constants['HEALTH_BAR_VISIBLE_DURATION']:
-                HealthBar(self)
+                health_bar = HealthBar(self)
+                health_bar.draw(screen)
 
     def take_damage(self, amount):
         if not self.killed:
@@ -494,7 +495,7 @@ class Zombie(pygame.sprite.Sprite):
 
 
 class HealthBar(pygame.sprite.Sprite):
-    """Draws a health bar for player or zombie."""
+    """Represents health bar for player or zombie."""
 
     WIDTH: ClassVar = 30
     HEIGHT: ClassVar = 6
@@ -502,22 +503,25 @@ class HealthBar(pygame.sprite.Sprite):
 
     def __init__(self, entity):
         super().__init__()
+        self.entity = entity
+
+    def draw(self, surface: pygame.Surface):
         outline_rect = pygame.Rect(
-            entity.rect.centerx - self.WIDTH / 2,
-            entity.rect.y + self.OFFSET_Y,
+            self.entity.rect.centerx - self.WIDTH / 2,
+            self.entity.rect.y + self.OFFSET_Y,
             self.WIDTH,
             self.HEIGHT,
         )
-        fill_width = (entity.health / entity.max_health) * self.WIDTH
+        fill_width = (self.entity.health / self.entity.max_health) * self.WIDTH
         fill_rect = outline_rect.copy()
         fill_rect.width = fill_width
         pygame.draw.rect(
-            screen,
+            surface,
             COLORS['NEON'],
             camera.apply(fill_rect),
         )
         pygame.draw.rect(
-            screen,
+            surface,
             COLORS['WHITE'],
             camera.apply(outline_rect),
             1,
@@ -1240,7 +1244,9 @@ if __name__ == '__main__':
                 auto_fire_text_pos = (player_pos[0], player_pos[1] - -100)
                 screen.blit(auto_fire_text, auto_fire_text_pos)
 
-            HealthBar(player)
+            player_health_bar = HealthBar(player)
+            player_health_bar.draw(screen)
+
             if reloading[player.current_weapon.name]:
                 reload_text = 'Reloading...'
                 reload_text_surface = base_font.render(reload_text, True, COLORS['YELLOW'])
