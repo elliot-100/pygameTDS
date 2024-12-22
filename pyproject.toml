@@ -9,6 +9,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pre-commit>=4.0.1",
+    "pytest>=8.3.4",
     "ruff>=0.8.4",
 ]
 [tool.ruff]
@@ -21,6 +22,7 @@ quote-style = "single"
 
 [tool.ruff.lint]
 select = [
+    "ANN",  # flake8-annotations
     "COM",  # flake8-commas
     "E",  # pycodestyle
     "F",  # Pyflakes
@@ -35,6 +37,12 @@ ignore = [
     # Rules that conflict with `quote-style = "single"`
     "Q000",  # Single quotes found but double quotes preferred
     "Q003",  # Change outer quotes to avoid escaping inner quotes
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore in unrefactored code
+"Launcher.py" = [
+    "ANN"
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
