@@ -9,6 +9,7 @@ from typing import ClassVar
 import pygame
 
 from src.blood_particle import BloodParticle
+from src.camera import Camera
 from src.chest import Chest
 from src.constants import COLORS, GAME_AREA, LEVEL_THRESHOLDS, PENETRATION_COLORS, WINDOW
 from src.cursor import Cursor
@@ -47,33 +48,6 @@ upgrade_options = [
     'Increase XP Gain',
     'a Random Weapon',
 ]
-
-
-class Camera:
-    """Manages the camera's position and movement."""
-
-    def __init__(self, width, height):
-        self.rect = pygame.Rect(0, 0, width, height)
-        self.width = width
-        self.height = height
-
-    def apply(self, entity):
-        """Applies the camera's offset to an entity's position."""
-        if isinstance(entity, pygame.Rect):
-            return entity.move(self.rect.topleft)
-        return entity.rect.move(self.rect.topleft)
-
-    def update(self, target):
-        """Updates the camera's position to follow the target."""
-        x = -target.rect.centerx + int(WINDOW['WIDTH'] / 2)
-        y = -target.rect.centery + int(WINDOW['HEIGHT'] / 2)
-
-        x = min(0, x)
-        y = min(0, y)
-        x = max(-(GAME_AREA['WIDTH'] - WINDOW['WIDTH']), x)
-        y = max(-(GAME_AREA['HEIGHT'] - WINDOW['HEIGHT']), y)
-
-        self.rect.topleft = (x, y)
 
 
 class Player(pygame.sprite.Sprite):
@@ -450,7 +424,7 @@ class Zombie(pygame.sprite.Sprite):
             self.image = pygame.transform.rotate(self.original_image, angle)
             self.rect = self.image.get_rect(center=self.rect.center)
 
-    def draw_health_bar(self, camera):
+    def draw_health_bar(self):
         current_time = pygame.time.get_ticks()
         if self.health < self.max_health and not self.killed:
             time_since_last_damage = current_time - self.last_damage_time

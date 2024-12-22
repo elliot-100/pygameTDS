@@ -44,6 +44,10 @@ ignore = [
 "Launcher.py" = [
     "ANN"
 ]
+# Ignore workarounds to fix later
+"camera.py" = [
+    "ANN401"  # Dynamically typed expressions (typing.Any) are disallowed
+]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
