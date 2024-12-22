@@ -48,6 +48,9 @@ ignore = [
 "camera.py" = [
     "ANN401"  # Dynamically typed expressions (typing.Any) are disallowed
 ]
+"zombies.py" = [
+    "F821"  #  Undefined name
+]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

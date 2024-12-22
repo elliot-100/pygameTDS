@@ -1,6 +1,6 @@
 """Tests for `Zombie` class."""
 
-from Launcher import Zombie
+from src.zombies import Zombie
 
 
 def test_new() -> None:
