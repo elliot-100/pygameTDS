@@ -25,14 +25,12 @@ else:
 
 constants = {
     'ZOMBIE_RADIUS': 0.1,
-    'PLAYER_SPEED': 0.7,
     'SPAWN_INTERVAL': 450,
     'SMALL_CIRCLE_LIFETIME': 9999,
     'FPS': 60,
     'ZOMBIE_FADE_DURATION': 150,
     'MAX_ALIVE_ZOMBIES': 100,
     'HEALTH_BAR_VISIBLE_DURATION': 120,
-    'PLAYER_HEALTH': 7500,
     'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
     'ZOMBIE_AVOIDANCE_RADIUS': 5,
     'WAVE_DELAY': 10000,
@@ -53,14 +51,17 @@ upgrade_options = [
 class Player(pygame.sprite.Sprite):
     """Represents the player character."""
 
+    INITIAL_SPEED: ClassVar = 0.7
+    MAX_HEALTH: ClassVar = 7500
+
     def __init__(self, x, y, image):
         super().__init__()
         self.original_image = image
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = player_mask
-        self.speed = constants['PLAYER_SPEED']
-        self.max_health = constants['PLAYER_HEALTH']
+        self.speed = self.INITIAL_SPEED
+        self.max_health = self.MAX_HEALTH
         self.health = self.max_health
         self.level = 1
         self.xp = 0
@@ -703,7 +704,7 @@ def spawn_zombie(zombie_type):
 def restart_game():
     global current_wave
     current_wave = 0
-    player.health = constants['PLAYER_HEALTH']
+    player.health = player.max_health
     player.rect.center = (GAME_AREA['WIDTH'] // 2, GAME_AREA['HEIGHT'] // 2)
 
     for group in all_sprites():
