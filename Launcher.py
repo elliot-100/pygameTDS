@@ -13,6 +13,7 @@ from src.chest import Chest
 from src.constants import COLORS, PENETRATION_COLORS
 from src.cursor import Cursor
 from src.energy_orb import EnergyOrb
+from src.floating_text import FloatingText
 from src.muzzle_flash import MuzzleFlash
 from src.weapons import Weapon, WeaponCategory
 
@@ -269,7 +270,9 @@ class Projectile(pygame.sprite.Sprite):
                     zombie.take_damage(current_damage)
 
                     damage_color = self.get_penetration_color()
-                    damage_text = FloatingText(zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color)
+                    damage_text = FloatingText(
+                        zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color, blood_font
+                    )
                     floating_texts.add(damage_text)
 
                     for _ in range(BloodParticle.PARTICLES_PER_SPRAY):
@@ -498,7 +501,7 @@ class Zombie(pygame.sprite.Sprite):
             self.show_health_bar = True
             self.flash()
 
-            damage_text = FloatingText(self.rect.centerx, self.rect.top, int(amount), COLORS['GAMMA'])
+            damage_text = FloatingText(self.rect.centerx, self.rect.top, int(amount), COLORS['GAMMA'], blood_font)
             floating_texts.add(damage_text)
 
             if self.health <= 0:
@@ -551,50 +554,6 @@ class Zombie(pygame.sprite.Sprite):
         else:
             self.kill()
             pygame.mixer.Sound.play(hit_sound)
-
-
-class FloatingText(pygame.sprite.Sprite):
-    def __init__(self, x, y, text, color):
-        super().__init__()
-        self.font = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
-        self.text = str(text)
-        self.color = color
-        self.outline_color = COLORS['BLACK']
-        self.outline_width = 0.1
-        self.create_image()
-        self.rect = self.image.get_rect(center=(x, y))
-        self.creation_time = pygame.time.get_ticks()
-        self.duration = 1750
-        self.fade_duration = 500
-        self.y_speed = -2
-        self.alpha = 255
-
-    def create_image(self):
-        outline_surface = self.font.render(self.text, True, self.outline_color)
-        outline_rect = outline_surface.get_rect()
-        self.image = pygame.Surface(
-            (outline_rect.width + self.outline_width * 2, outline_rect.height + self.outline_width * 2), pygame.SRCALPHA
-        )
-
-        for dx, dy in [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (1, 0), (0, -1), (0, 1)]:
-            self.image.blit(outline_surface, (self.outline_width + dx, self.outline_width + dy))
-
-        text_surface = self.font.render(self.text, True, self.color)
-        self.image.blit(text_surface, (self.outline_width, self.outline_width))
-
-    def update(self):
-        self.rect.y += self.y_speed
-
-        current_time = pygame.time.get_ticks()
-        elapsed_time = current_time - self.creation_time
-
-        if elapsed_time > self.duration:
-            fade_progress = min(1, (elapsed_time - self.duration) / self.fade_duration)
-            self.alpha = int(255 * (1 - fade_progress))
-            self.image.set_alpha(self.alpha)
-
-            if fade_progress >= 1:
-                self.kill()
 
 
 class HealthBar(pygame.sprite.Sprite):
@@ -654,7 +613,7 @@ def render_upgrade_panel():
     panel.fill((0, 0, 0, 200))  # Black with alpha=200
     screen.blit(panel, (panel_x, panel_y))
 
-    render_text('Choose an Upgrade', font, COLORS['WHITE'], panel_x + (panel_width // 2) - 100, panel_y - 50)
+    render_text('Choose an Upgrade', base_font, panel_x + (panel_width // 2) - 100, panel_y - 50)
 
     option_rects = []
     for i, option in enumerate(upgrade_options):
@@ -668,7 +627,7 @@ def render_upgrade_panel():
         screen.blit(option_surface, (x, y))
 
         pygame.draw.rect(screen, COLORS['WHITE'], rect, 2)
-        render_text(option, font, COLORS['WHITE'], x + 10, y + 40)
+        render_text(option, base_font, x + 10, y + 40)
         option_rects.append(rect)
 
     return option_rects
@@ -709,7 +668,7 @@ def apply_upgrade(index):
 
 
 def display_damage_text(damage, position, color):
-    damage_text = font.render(f'-{int(damage)}', True, color)
+    damage_text = base_font.render(f'-{int(damage)}', True, color)
     damage_rect = damage_text.get_rect(center=position)
     screen.blit(damage_text, damage_rect)
 
@@ -718,7 +677,7 @@ def line_collision(start, end, zombie):
     return zombie.hitbox.clipline(start, end)
 
 
-def render_text(text, font, color, x, y):
+def render_text(text, font, x, y, color=COLORS['WHITE']):
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, (x, y))
 
@@ -835,48 +794,49 @@ def draw_progress_bar(surface, x, y, width, height, progress, color):
     fill_rect = pygame.Rect(x, y, int(width * progress), height)
     pygame.draw.rect(surface, COLORS['WHITE'], bar_rect, 2)
     pygame.draw.rect(surface, color, fill_rect)
-    level_text = font.render(f'Brain Power: {player.level}', True, COLORS['WHITE'])
+    level_text = base_font.render(f'Brain Power: {player.level}', True, COLORS['WHITE'])
     level_text_rect = level_text.get_rect(midleft=(x + 10, y + height // 2))
     surface.blit(level_text, level_text_rect)
-    xp_text = font.render(f'{player.xp}/{level_thresholds[player.level + 1]}', True, COLORS['WHITE'])
+    xp_text = base_font.render(f'{player.xp}/{level_thresholds[player.level + 1]}', True, COLORS['WHITE'])
     xp_text_rect = xp_text.get_rect(midright=(x + width - 10, y + height // 2))
     surface.blit(xp_text, xp_text_rect)
 
 
-def render_how_to_play():
+def render_text_screen(content):
+    max_x, max_y = constants['WIDTH'], constants['HEIGHT']
+    center_x, center_y = max_x // 2, max_y // 2
+    base_left_margin = 100
+    left_margin = base_left_margin
     screen.fill(COLORS['BLACK'])
-    render_text('How to Play', font, COLORS['WHITE'], constants['WIDTH'] // 2 - 100, 25)
-    render_text('WASD - Move', font, COLORS['WHITE'], 100, 100)
-    render_text('Left Mouse Button - Shoot', font, COLORS['WHITE'], 100, 150)
-    render_text('Right Mouse Button - Auto-fire', font, COLORS['WHITE'], 100, 200)
-    render_text('R - Reload', font, COLORS['WHITE'], 100, 250)
-    render_text('1-7 - Switch weapon category', font, COLORS['WHITE'], 100, 300)
-    render_text('Mouse Wheel - Cycle weapons in category', font, COLORS['WHITE'], 100, 350)
-    render_text('ESC - Pause game', font, COLORS['WHITE'], 100, 400)
-    render_text(
-        'Press ESC to return to main menu',
-        font,
-        COLORS['WHITE'],
-        constants['WIDTH'] // 2 - 200,
-        constants['HEIGHT'] - 100,
-    )
-
-
-def render_credits():
-    screen.fill(COLORS['BLACK'])
-    render_text('Credits', font, COLORS['WHITE'], constants['WIDTH'] // 2 - 50, 50)
-    render_text("Game Developer: Some dude living in his mom's basement", font, COLORS['WHITE'], 100, 150)
-    render_text('GraphicSFX: Me', font, COLORS['WHITE'], 100, 200)
-    render_text('SoundFX: Me', font, COLORS['WHITE'], 100, 250)
-    render_text('Programming: Me', font, COLORS['WHITE'], 100, 300)
-    render_text('Special Thanks: Coffee', font, COLORS['WHITE'], 100, 350)
-    render_text(
-        'Press ESC to return to main menu',
-        font,
-        COLORS['WHITE'],
-        constants['WIDTH'] // 2 - 200,
-        constants['HEIGHT'] - 100,
-    )
+    if content == 'MAIN_MENU':
+        left_margin = center_x - 200
+        render_text('The Black Box Project', base_font, left_margin, center_y - 150)
+        render_text('Press ENTER to Play', base_font, left_margin, center_y - 50)
+        render_text('Press H for How to Play', base_font, left_margin, center_y)
+        render_text('Press C for Credits', base_font, left_margin, center_y + 50)
+        render_text('Press ESC to Quit', base_font, left_margin, center_y + 100)
+    elif content == 'HOW_TO_PLAY':
+        render_text('How to Play', base_font, center_x - 100, 25)
+        render_text('WASD - Move', base_font, left_margin, 100)
+        render_text('Left Mouse Button - Shoot', base_font, left_margin, 150)
+        render_text('Right Mouse Button - Auto-fire', base_font, left_margin, 200)
+        render_text('R - Reload', base_font, left_margin, 250)
+        render_text('1-7 - Switch weapon category', base_font, left_margin, 300)
+        render_text('Mouse Wheel - Cycle weapons in category', base_font, left_margin, 350)
+        render_text('ESC - Pause game', base_font, left_margin, 400)
+        render_text('Press ESC to return to main menu', base_font, center_x - 200, max_y - 100)
+    elif content == 'CREDITS':
+        render_text('Credits', base_font, center_x, -50, 50)
+        render_text("Game Developer: Some dude living in his mom's basement", base_font, left_margin, 150)
+        render_text('GraphicSFX: Me', base_font, left_margin, 200)
+        render_text('SoundFX: Me', base_font, left_margin, 250)
+        render_text('Programming: Me', base_font, left_margin, 300)
+        render_text('Special Thanks: Coffee', base_font, left_margin, 350)
+        render_text('Press ESC to return to main menu', base_font, center_x - 200, max_y - 100)
+    elif content == 'PAUSED':
+        render_text('Game Paused', base_font, center_x - 150, center_y - 100)
+        render_text('Press ENTER to Resume', base_font, center_x - 250, center_y)
+        render_text('Press ESC to Main Menu', base_font, center_x - 250, center_y + 50)
 
 
 def set_initial_weapon(self):
@@ -965,13 +925,11 @@ if __name__ == '__main__':
 
     pygame.init()
 
-    font1 = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
-    font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
-    scorefont = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
-    bloodfont = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
+    base_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
     fps_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
+    score_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 20)
     weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
-    version_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 15)
+    blood_font = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
 
     screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
     pygame.display.set_caption('TBBP Game')
@@ -1278,7 +1236,7 @@ if __name__ == '__main__':
                         zombie.take_damage(current_damage)
                         damage_color = projectile.get_penetration_color()
                         damage_text = FloatingText(
-                            zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color
+                            zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color, blood_font
                         )
                         floating_texts.add(damage_text)
                         projectile.reduce_penetration(zombie)
@@ -1322,14 +1280,14 @@ if __name__ == '__main__':
                         game_state = 'main_menu'
 
             elapsed_time = (current_time - start_time) / 1000
-            render_text(f'Time: {elapsed_time:.2f} s', font, COLORS['WHITE'], 475, 10)
-            render_text(f'Wave: {current_wave}', font, COLORS['WHITE'], 700, 10)
-            render_text(f'Score: {player.score}', scorefont, COLORS['WHITE'], 875, 10)
-            render_text(f'FPS: {int(clock.get_fps())}', fps_font, COLORS['GAMMA'], constants['WIDTH'] - 140, 10)
-            render_text(f'Total Kills: {player.total_kills} (Remaining: {len(zombies)})', font, COLORS['WHITE'], 10, 10)
+            render_text(f'Time: {elapsed_time:.2f} s', base_font, 475, 10)
+            render_text(f'Wave: {current_wave}', base_font, 700, 10)
+            render_text(f'Score: {player.score}', score_font, 875, 10)
+            render_text(f'FPS: {int(clock.get_fps())}', fps_font, constants['WIDTH'] - 140, 10, COLORS['GAMMA'])
+            render_text(f'Total Kills: {player.total_kills} (Remaining: {len(zombies)})', base_font, 10, 10)
 
             version_text = 'Alpha 1.02'
-            version_surface = version_font.render(version_text, True, COLORS['WHITE'])
+            version_surface = base_font.render(version_text, True, COLORS['WHITE'])
             version_rect = version_surface.get_rect()
             version_rect.bottomright = (constants['WIDTH'] - 10, constants['HEIGHT'] - 40)
             screen.blit(version_surface, version_rect)
@@ -1337,8 +1295,8 @@ if __name__ == '__main__':
             player_pos = camera.apply(player).topleft
             weapon_text = f'{player.current_weapon.name}'
             ammo_text = f'| {player.current_weapon.ammo} |'
-            weapon_text_surface = font1.render(weapon_text, True, COLORS['WHITE'])
-            ammo_text_surface = font1.render(ammo_text, True, COLORS['YELLOW'])
+            weapon_text_surface = base_font.render(weapon_text, True, COLORS['WHITE'])
+            ammo_text_surface = base_font.render(ammo_text, True, COLORS['YELLOW'])
 
             weapon_text_pos = (player_pos[0], player_pos[1] - -60)
             ammo_text_pos = (player_pos[0], player_pos[1] - -80)
@@ -1347,76 +1305,24 @@ if __name__ == '__main__':
             screen.blit(ammo_text_surface, ammo_text_pos)
 
             if auto_firing:
-                auto_fire_text = font1.render('Auto-Fire: ON', True, COLORS['YELLOW'])
+                auto_fire_text = base_font.render('Auto-Fire: ON', True, COLORS['YELLOW'])
                 auto_fire_text_pos = (player_pos[0], player_pos[1] - -100)
                 screen.blit(auto_fire_text, auto_fire_text_pos)
 
             HealthBar(player)
             if reloading[player.current_weapon.name]:
                 reload_text = 'Reloading...'
-                reload_text_surface = font1.render(reload_text, True, COLORS['YELLOW'])
+                reload_text_surface = base_font.render(reload_text, True, COLORS['YELLOW'])
                 reload_text_pos = (player_pos[0], player_pos[1] - -120)
                 screen.blit(reload_text_surface, reload_text_pos)
         elif game_state == 'main_menu':
-            screen.fill(COLORS['BLACK'])
-            render_text(
-                'The Black Box Project',
-                font,
-                COLORS['WHITE'],
-                constants['WIDTH'] // 2 - 200,
-                constants['HEIGHT'] // 2 - 150,
-            )
-            render_text(
-                'Press ENTER to Play',
-                font,
-                COLORS['WHITE'],
-                constants['WIDTH'] // 2 - 200,
-                constants['HEIGHT'] // 2 - 50,
-            )
-            render_text(
-                'Press H for How to Play',
-                font,
-                COLORS['WHITE'],
-                constants['WIDTH'] // 2 - 200,
-                constants['HEIGHT'] // 2,
-            )
-            render_text(
-                'Press C for Credits',
-                font,
-                COLORS['WHITE'],
-                constants['WIDTH'] // 2 - 200,
-                constants['HEIGHT'] // 2 + 50,
-            )
-            render_text(
-                'Press ESC to Quit',
-                font,
-                COLORS['WHITE'],
-                constants['WIDTH'] // 2 - 200,
-                constants['HEIGHT'] // 2 + 100,
-            )
+            render_text_screen('MAIN_MENU')
         elif game_state == 'paused':
-            screen.fill(COLORS['BLACK'])
-            render_text(
-                'Game Paused', font, COLORS['WHITE'], constants['WIDTH'] // 2 - 150, constants['HEIGHT'] // 2 - 100
-            )
-            render_text(
-                'Press ENTER to Resume',
-                font,
-                COLORS['WHITE'],
-                constants['WIDTH'] // 2 - 250,
-                constants['HEIGHT'] // 2,
-            )
-            render_text(
-                'Press ESC to Main Menu',
-                font,
-                COLORS['WHITE'],
-                constants['WIDTH'] // 2 - 250,
-                constants['HEIGHT'] // 2 + 50,
-            )
+            render_text_screen('PAUSED')
         elif game_state == 'how_to_play':
-            render_how_to_play()
+            render_text_screen('HOW_TO_PLAY')
         elif game_state == 'credits':
-            render_credits()
+            render_text_screen('CREDITS')
 
         cursor.draw(surface=screen, center_pos=mouse_pos)
         pygame.display.flip()
