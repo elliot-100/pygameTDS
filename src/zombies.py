@@ -6,7 +6,7 @@ from typing import ClassVar, Self, Sequence
 
 import pygame
 
-from Launcher import BASE_DIR, HealthBar, Player, ZombieClass
+from Launcher import BASE_DIR, HealthBar, Player
 from src.constants import COLORS, GAME_AREA
 from src.energy_orb import EnergyOrb
 from src.floating_text import FloatingText
@@ -265,3 +265,17 @@ class Zombie(pygame.sprite.Sprite):
         else:
             self.kill()
             pygame.mixer.Sound.play(hit_sound)
+
+
+class ZombieClass:
+    a = {'HEALTH': 50, 'SPEED': 1.0}
+    b = {'HEALTH': 66, 'SPEED': 1.1}
+    c = {'HEALTH': 99, 'SPEED': 1.2}
+    d = {'HEALTH': 133, 'SPEED': 1.3}
+    e = {'HEALTH': 166, 'SPEED': 1.4}
+    f = {'HEALTH': 199, 'SPEED': 1.5}
+    g = {'HEALTH': 233, 'SPEED': 1.6}
+    h = {'HEALTH': 266, 'SPEED': 1.7}
+    i = {'HEALTH': 299, 'SPEED': 1.8}
+    j = {'HEALTH': 333, 'SPEED': 1.9}
+    k = {'HEALTH': 444, 'SPEED': 2.0}
