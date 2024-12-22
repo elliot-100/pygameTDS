@@ -75,6 +75,19 @@ class Player(pygame.sprite.Sprite):
         self.current_category_index = 0
         self.set_initial_weapon()
 
+    def reset(self):
+        """Partially reinitialize the player on starting a new game.
+
+        This allows for some stats to persist across games.
+        """
+        self.health = self.max_health
+        self.set_initial_weapon()
+        self.level = 1
+        self.xp = 0
+        self.score = 0
+        self.total_kills = 0
+        self.rect.center = (GAME_AREA['WIDTH'] // 2, GAME_AREA['HEIGHT'] // 2)
+
     def set_initial_weapon(self):
         """Sets the initial weapon for the player."""
         first_pistol = self.weapon_categories[0].weapons[0]
@@ -704,18 +717,12 @@ def spawn_zombie(zombie_type):
 def restart_game():
     global current_wave
     current_wave = 0
-    player.health = player.max_health
-    player.rect.center = (GAME_AREA['WIDTH'] // 2, GAME_AREA['HEIGHT'] // 2)
+    player.reset()
 
     for group in all_sprites():
         group.empty()
 
     players.add(player)
-    player.set_initial_weapon()
-    player.score = 0
-    player.total_kills = 0
-    player.xp = 0
-    player.level = 1
 
     for category in weapon_categories:
         for weapon in category.weapons:
