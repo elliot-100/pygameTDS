@@ -923,7 +923,6 @@ if __name__ == '__main__':
     cursor = Cursor()
     pygame.mouse.set_visible(False)
 
-    render_upgrade_panel()
     running = True
     game_state = 'main_menu'
     selected_weapon = 'Glock(PDW)'
