@@ -808,26 +808,26 @@ def all_sprites() -> list[pygame.sprite.Group]:
     return [energy_orbs, blood_particles, chests, zombies, players, muzzle_flashes, projectiles, floating_texts]
 
 
-if __name__ == '__main__':
-    pistol = WeaponCategory(
+def setup_weapons() -> list[WeaponCategory]:
+    pistols = WeaponCategory(
         'pistols',
         [
             Weapon('Glock(PDW)', 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
         ],
     )
-    smg = WeaponCategory(
+    smgs = WeaponCategory(
         'SMG',
         [
             Weapon('Skorpian(SMG)', 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
         ],
     )
-    rifles = WeaponCategory(
-        'Rifles',
-        [
-            Weapon('SVT-40(RIFLE)', 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
-        ],
-    )
-    bolt_action = WeaponCategory(
+    # rifles = WeaponCategory(
+    #     'Rifles',
+    #     [
+    #         Weapon('SVT-40(RIFLE)', 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
+    #     ],
+    # )
+    bolt_actions = WeaponCategory(
         'Bolt Action',
         [
             Weapon('Mosin(BOLT)', 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
@@ -858,7 +858,11 @@ if __name__ == '__main__':
             Weapon('RPG-7(BLAST)', 20, 5000, 100, 0.1, 1, 5000, 0, locked=True, blast_radius=50),
         ],
     )
-    weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
+    return [pistols, smgs, bolt_actions, assault_rifles, lmgs, shotguns, launchers]
+
+
+if __name__ == '__main__':
+    weapon_categories = setup_weapons()
 
     pygame.init()
 
