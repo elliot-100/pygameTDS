@@ -75,6 +75,7 @@ class Player(pygame.sprite.Sprite):
         self.current_category_index = 0
         self.current_weapon = None
         self.set_initial_weapon()
+        self.auto_firing = False
 
     def reset(self):
         """Partially reinitialize the player on starting a new game.
@@ -965,7 +966,6 @@ if __name__ == '__main__':
     last_spawn_time = 0
     wave_start_time = 0
     wave_delay_active = False
-    auto_firing = False
     show_upgrade_panel = False
 
     while running:
@@ -981,8 +981,8 @@ if __name__ == '__main__':
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
-                    auto_firing = not auto_firing
-                    print('Auto-firing mode enabled' if auto_firing else 'Auto-firing mode disabled')
+                    player.auto_firing = not player.auto_firing
+                    print('Auto-firing mode enabled' if player.auto_firing else 'Auto-firing mode disabled')
                 elif event.button == 1 and show_upgrade_panel:
                     panel_width = 1600
                     panel_height = 900
@@ -1118,7 +1118,7 @@ if __name__ == '__main__':
 
             if not reloading[player.current_weapon.name] and time_since_last_shot >= player.current_weapon.fire_rate:
                 mouse_buttons = pygame.mouse.get_pressed()
-                if mouse_buttons[0] or auto_firing:
+                if mouse_buttons[0] or player.auto_firing:
                     if player.current_weapon.ammo > 0:
                         angle = math.atan2(
                             adjusted_mouse_pos[1] - player.rect.centery, adjusted_mouse_pos[0] - player.rect.centerx
@@ -1251,7 +1251,7 @@ if __name__ == '__main__':
             screen.blit(weapon_text_surface, weapon_text_pos)
             screen.blit(ammo_text_surface, ammo_text_pos)
 
-            if auto_firing:
+            if player.auto_firing:
                 auto_fire_text = base_font.render('Auto-Fire: ON', True, COLORS['YELLOW'])
                 auto_fire_text_pos = (player_pos[0], player_pos[1] - -100)
                 screen.blit(auto_fire_text, auto_fire_text_pos)
