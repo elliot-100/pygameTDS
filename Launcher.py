@@ -54,12 +54,12 @@ class Player(pygame.sprite.Sprite):
     INITIAL_SPEED: ClassVar = 0.7
     MAX_HEALTH: ClassVar = 7500
 
-    def __init__(self, x, y, image):
+    def __init__(self, x, y, image, image_mask):
         super().__init__()
         self.original_image = image
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x, y))
-        self.mask = player_mask
+        self.mask = image_mask
         self.speed = self.INITIAL_SPEED
         self.max_health = self.MAX_HEALTH
         self.health = self.max_health
@@ -920,6 +920,7 @@ if __name__ == '__main__':
         x=GAME_AREA['WIDTH'] // 2,
         y=GAME_AREA['HEIGHT'] // 2,
         image=player_image,
+        image_mask=player_mask,
     )
     players.add(player)
 
