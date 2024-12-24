@@ -4,7 +4,14 @@ from src.constants import COLORS
 
 
 class FloatingText(pygame.sprite.Sprite):
-    def __init__(self, x: int, y: int, text: str, color: tuple[int, int, int], font: pygame.font.Font) -> None:
+    def __init__(
+        self,
+        x: int,
+        y: int,
+        text: str,
+        color: tuple[int, int, int],
+        font: pygame.font.Font,
+    ) -> None:
         super().__init__()
         self.font = font
         self.text = str(text)
@@ -23,11 +30,26 @@ class FloatingText(pygame.sprite.Sprite):
         outline_surface = self.font.render(self.text, True, self.outline_color)
         outline_rect = outline_surface.get_rect()
         self.image = pygame.Surface(
-            (outline_rect.width + self.outline_width * 2, outline_rect.height + self.outline_width * 2), pygame.SRCALPHA
+            (
+                outline_rect.width + self.outline_width * 2,
+                outline_rect.height + self.outline_width * 2,
+            ),
+            pygame.SRCALPHA,
         )
 
-        for dx, dy in [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (1, 0), (0, -1), (0, 1)]:
-            self.image.blit(outline_surface, (self.outline_width + dx, self.outline_width + dy))
+        for dx, dy in [
+            (-1, -1),
+            (-1, 1),
+            (1, -1),
+            (1, 1),
+            (-1, 0),
+            (1, 0),
+            (0, -1),
+            (0, 1),
+        ]:
+            self.image.blit(
+                outline_surface, (self.outline_width + dx, self.outline_width + dy)
+            )
 
         text_surface = self.font.render(self.text, True, self.color)
         self.image.blit(text_surface, (self.outline_width, self.outline_width))

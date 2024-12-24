@@ -163,7 +163,9 @@ class Player(pygame.sprite.Sprite):
         """Switches to a different weapon category."""
         if 0 <= index < len(self.weapon_categories):
             self.current_category_index = index
-            new_weapon = self.weapon_categories[self.current_category_index].current_weapon()
+            new_weapon = self.weapon_categories[
+                self.current_category_index
+            ].current_weapon()
             if new_weapon is not None:
                 self.current_weapon = new_weapon
 
@@ -198,7 +200,9 @@ class Player(pygame.sprite.Sprite):
         if 0 <= new_y < constants['VIRTUAL_HEIGHT'] - self.rect.height:
             self.rect.y = new_y
 
-        angle = math.atan2(mouse_pos[1] - self.rect.centery, mouse_pos[0] - self.rect.centerx)
+        angle = math.atan2(
+            mouse_pos[1] - self.rect.centery, mouse_pos[0] - self.rect.centerx
+        )
         self.rotate(angle)
 
     def rotate(self, angle):
@@ -258,12 +262,15 @@ class Projectile(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += self.dx
         self.rect.y += self.dy
-        if not pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']).colliderect(self.rect):
+        if not pygame.Rect(
+            0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']
+        ).colliderect(self.rect):
             self.kill()
         else:
             for zombie in zombies:
                 distance = math.sqrt(
-                    (self.rect.centerx - zombie.rect.centerx) ** 2 + (self.rect.centery - zombie.rect.centery) ** 2
+                    (self.rect.centerx - zombie.rect.centerx) ** 2
+                    + (self.rect.centery - zombie.rect.centery) ** 2
                 )
                 if distance <= self.blast_radius:
                     current_damage = self.get_current_damage()
@@ -271,7 +278,11 @@ class Projectile(pygame.sprite.Sprite):
 
                     damage_color = self.get_penetration_color()
                     damage_text = FloatingText(
-                        zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color, blood_font
+                        zombie.rect.centerx,
+                        zombie.rect.top,
+                        int(current_damage),
+                        damage_color,
+                        blood_font,
                     )
                     floating_texts.add(damage_text)
 
@@ -334,7 +345,10 @@ class Zombie(pygame.sprite.Sprite):
         hitbox_size = int(self.rect.width * 0.5)
         self.hitbox = pygame.Rect(0, 0, hitbox_size, hitbox_size)
         self.hitbox.center = self.rect.center
-        self.grid_size = (constants['VIRTUAL_WIDTH'] // 16, constants['VIRTUAL_HEIGHT'] // 16)
+        self.grid_size = (
+            constants['VIRTUAL_WIDTH'] // 16,
+            constants['VIRTUAL_HEIGHT'] // 16,
+        )
         self.path = []
         self.path_update_interval = 1500
         self.path_update_offset = random.randint(0, self.path_update_interval)
@@ -357,7 +371,9 @@ class Zombie(pygame.sprite.Sprite):
         return 'a'
 
     def get_new_roaming_target(self):
-        return random.randint(0, constants['VIRTUAL_WIDTH']), random.randint(0, constants['VIRTUAL_HEIGHT'])
+        return random.randint(0, constants['VIRTUAL_WIDTH']), random.randint(
+            0, constants['VIRTUAL_HEIGHT']
+        )
 
     def update(self):
         self.last_damage_time = pygame.time.get_ticks()
@@ -366,7 +382,11 @@ class Zombie(pygame.sprite.Sprite):
             self.fade_out()
         elif not self.fading:
             current_time = pygame.time.get_ticks()
-            if self.show_health_bar and current_time - self.last_damage_time > constants['HEALTH_BAR_VISIBLE_DURATION']:
+            if (
+                self.show_health_bar
+                and current_time - self.last_damage_time
+                > constants['HEALTH_BAR_VISIBLE_DURATION']
+            ):
                 self.show_health_bar = False
             if current_time - self.last_path_update > self.path_update_interval:
                 self.update_path()
@@ -375,7 +395,8 @@ class Zombie(pygame.sprite.Sprite):
             if self.path:
                 next_pos = self.path[0]
                 direction = pygame.math.Vector2(
-                    next_pos[0] * 32 - self.rect.centerx, next_pos[1] * 32 - self.rect.centery
+                    next_pos[0] * 32 - self.rect.centerx,
+                    next_pos[1] * 32 - self.rect.centery,
                 )
                 if direction.length() > 0:
                     direction = direction.normalize() * self.speed
@@ -421,7 +442,11 @@ class Zombie(pygame.sprite.Sprite):
             (x + 1, y - 1),
             (x - 1, y + 1),
         ]
-        return [(nx, ny) for nx, ny in neighbors if 0 <= nx < self.grid_size[0] and 0 <= ny < self.grid_size[1]]
+        return [
+            (nx, ny)
+            for nx, ny in neighbors
+            if 0 <= nx < self.grid_size[0] and 0 <= ny < self.grid_size[1]
+        ]
 
     def manhattan_distance(self, a, b):
         return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
@@ -441,7 +466,9 @@ class Zombie(pygame.sprite.Sprite):
                 break
 
             for next in self.get_neighbors(current):
-                new_cost = cost_so_far[current] + (1 if (next[0] - current[0]) * (next[1] - current[1]) == 0 else 1.414)
+                new_cost = cost_so_far[current] + (
+                    1 if (next[0] - current[0]) * (next[1] - current[1]) == 0 else 1.414
+                )
                 if new_cost < cost_so_far[next]:
                     cost_so_far[next] = new_cost
                     priority = new_cost + self.manhattan_distance(goal, next)
@@ -462,7 +489,9 @@ class Zombie(pygame.sprite.Sprite):
         avoidance_force = pygame.math.Vector2(0, 0)
         for other_zombie in zombies:
             if other_zombie != self:
-                distance = pygame.math.Vector2(self.rect.center) - pygame.math.Vector2(other_zombie.rect.center)
+                distance = pygame.math.Vector2(self.rect.center) - pygame.math.Vector2(
+                    other_zombie.rect.center
+                )
                 if 0 < distance.length() < constants['ZOMBIE_AVOIDANCE_RADIUS']:
                     avoidance_force += distance.normalize()
 
@@ -472,7 +501,9 @@ class Zombie(pygame.sprite.Sprite):
             self.rect.y += avoidance_force.y
 
     def check_boundaries(self):
-        self.rect.clamp_ip(pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']))
+        self.rect.clamp_ip(
+            pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+        )
 
     def rotate_to_target(self):
         if self.path:
@@ -501,7 +532,13 @@ class Zombie(pygame.sprite.Sprite):
             self.show_health_bar = True
             self.flash()
 
-            damage_text = FloatingText(self.rect.centerx, self.rect.top, int(amount), COLORS['GAMMA'], blood_font)
+            damage_text = FloatingText(
+                self.rect.centerx,
+                self.rect.top,
+                int(amount),
+                COLORS['GAMMA'],
+                blood_font,
+            )
             floating_texts.add(damage_text)
 
             if self.health <= 0:
@@ -526,11 +563,35 @@ class Zombie(pygame.sprite.Sprite):
             )
 
     def get_score_value(self):
-        score_table = {'a': 5, 'b': 10, 'c': 15, 'd': 20, 'e': 25, 'f': 30, 'g': 35, 'h': 40, 'i': 45, 'j': 50, 'k': 55}
+        score_table = {
+            'a': 5,
+            'b': 10,
+            'c': 15,
+            'd': 20,
+            'e': 25,
+            'f': 30,
+            'g': 35,
+            'h': 40,
+            'i': 45,
+            'j': 50,
+            'k': 55,
+        }
         return score_table.get(self.zombie_class_name, 5)
 
     def blood(self):
-        bloodline_table = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8, 'i': 9, 'j': 10, 'k': 11}
+        bloodline_table = {
+            'a': 1,
+            'b': 2,
+            'c': 3,
+            'd': 4,
+            'e': 5,
+            'f': 6,
+            'g': 7,
+            'h': 8,
+            'i': 9,
+            'j': 10,
+            'k': 11,
+        }
         return bloodline_table.get(self.zombie_class_name, 1)
 
     def flash(self):
@@ -594,7 +655,11 @@ def manhattan_distance(a, b):
 def get_neighbors(pos, grid_size):
     x, y = pos
     neighbors = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
-    return [(nx, ny) for nx, ny in neighbors if 0 <= nx < grid_size[0] and 0 <= ny < grid_size[1]]
+    return [
+        (nx, ny)
+        for nx, ny in neighbors
+        if 0 <= nx < grid_size[0] and 0 <= ny < grid_size[1]
+    ]
 
 
 def render_upgrade_panel():
@@ -613,7 +678,9 @@ def render_upgrade_panel():
     panel.fill((0, 0, 0, 200))  # Black with alpha=200
     screen.blit(panel, (panel_x, panel_y))
 
-    render_text('Choose an Upgrade', base_font, panel_x + (panel_width // 2) - 100, panel_y - 50)
+    render_text(
+        'Choose an Upgrade', base_font, panel_x + (panel_width // 2) - 100, panel_y - 50
+    )
 
     option_rects = []
     for i, option in enumerate(upgrade_options):
@@ -740,11 +807,17 @@ def spawn_zombie(zombie_type):
     if spawn_side == 'top':
         x, y = random.randint(50, constants['VIRTUAL_WIDTH']), 50
     elif spawn_side == 'bottom':
-        x, y = random.randint(50, constants['VIRTUAL_WIDTH']), constants['VIRTUAL_HEIGHT']
+        x, y = (
+            random.randint(50, constants['VIRTUAL_WIDTH']),
+            constants['VIRTUAL_HEIGHT'],
+        )
     elif spawn_side == 'left':
         x, y = 0, random.randint(50, constants['VIRTUAL_HEIGHT'])
     else:
-        x, y = constants['VIRTUAL_WIDTH'], random.randint(50, constants['VIRTUAL_HEIGHT'])
+        x, y = (
+            constants['VIRTUAL_WIDTH'],
+            random.randint(50, constants['VIRTUAL_HEIGHT']),
+        )
     zombie_classes = {
         'a': (ZombieClass.a, zombie_images[0]),
         'b': (ZombieClass.b, zombie_images[1]),
@@ -758,7 +831,9 @@ def spawn_zombie(zombie_type):
         'j': (ZombieClass.j, zombie_images[9]),
         'k': (ZombieClass.k, zombie_images[10]),
     }
-    zombie_class, zombie_image = zombie_classes.get(zombie_type, (ZombieClass.a, zombie_images[0]))
+    zombie_class, zombie_image = zombie_classes.get(
+        zombie_type, (ZombieClass.a, zombie_images[0])
+    )
     zombie = Zombie(x, y, player, zombie_image, zombie_class)
     zombies.add(zombie)
 
@@ -767,7 +842,10 @@ def restart_game():
     global current_wave
     current_wave = 0
     player.health = constants['PLAYER_HEALTH']
-    player.rect.center = (constants['VIRTUAL_WIDTH'] // 2, constants['VIRTUAL_HEIGHT'] // 2)
+    player.rect.center = (
+        constants['VIRTUAL_WIDTH'] // 2,
+        constants['VIRTUAL_HEIGHT'] // 2,
+    )
 
     for group in all_sprites():
         group.empty()
@@ -797,7 +875,9 @@ def draw_progress_bar(surface, x, y, width, height, progress, color):
     level_text = base_font.render(f'Brain Power: {player.level}', True, COLORS['WHITE'])
     level_text_rect = level_text.get_rect(midleft=(x + 10, y + height // 2))
     surface.blit(level_text, level_text_rect)
-    xp_text = base_font.render(f'{player.xp}/{level_thresholds[player.level + 1]}', True, COLORS['WHITE'])
+    xp_text = base_font.render(
+        f'{player.xp}/{level_thresholds[player.level + 1]}', True, COLORS['WHITE']
+    )
     xp_text_rect = xp_text.get_rect(midright=(x + width - 10, y + height // 2))
     surface.blit(xp_text, xp_text_rect)
 
@@ -822,17 +902,28 @@ def render_text_screen(content):
         render_text('Right Mouse Button - Auto-fire', base_font, left_margin, 200)
         render_text('R - Reload', base_font, left_margin, 250)
         render_text('1-7 - Switch weapon category', base_font, left_margin, 300)
-        render_text('Mouse Wheel - Cycle weapons in category', base_font, left_margin, 350)
+        render_text(
+            'Mouse Wheel - Cycle weapons in category', base_font, left_margin, 350
+        )
         render_text('ESC - Pause game', base_font, left_margin, 400)
-        render_text('Press ESC to return to main menu', base_font, center_x - 200, max_y - 100)
+        render_text(
+            'Press ESC to return to main menu', base_font, center_x - 200, max_y - 100
+        )
     elif content == 'CREDITS':
         render_text('Credits', base_font, center_x, -50, 50)
-        render_text("Game Developer: Some dude living in his mom's basement", base_font, left_margin, 150)
+        render_text(
+            "Game Developer: Some dude living in his mom's basement",
+            base_font,
+            left_margin,
+            150,
+        )
         render_text('GraphicSFX: Me', base_font, left_margin, 200)
         render_text('SoundFX: Me', base_font, left_margin, 250)
         render_text('Programming: Me', base_font, left_margin, 300)
         render_text('Special Thanks: Coffee', base_font, left_margin, 350)
-        render_text('Press ESC to return to main menu', base_font, center_x - 200, max_y - 100)
+        render_text(
+            'Press ESC to return to main menu', base_font, center_x - 200, max_y - 100
+        )
     elif content == 'PAUSED':
         render_text('Game Paused', base_font, center_x - 150, center_y - 100)
         render_text('Press ENTER to Resume', base_font, center_x - 250, center_y)
@@ -868,7 +959,16 @@ def create_projectile(pellet_angle):
 
 def all_sprites() -> list[pygame.sprite.Group]:
     """Returns a list of all sprite groups."""
-    return [energy_orbs, blood_particles, chests, zombies, players, muzzle_flashes, projectiles, floating_texts]
+    return [
+        energy_orbs,
+        blood_particles,
+        chests,
+        zombies,
+        players,
+        muzzle_flashes,
+        projectiles,
+        floating_texts,
+    ]
 
 
 if __name__ == '__main__':
@@ -918,10 +1018,29 @@ if __name__ == '__main__':
     launchers = WeaponCategory(
         'Launchers',
         [
-            Weapon('RPG-7(BLAST)', 20, 5000, 100, 0.1, 1, 5000, 0, locked=True, blast_radius=50),
+            Weapon(
+                'RPG-7(BLAST)',
+                20,
+                5000,
+                100,
+                0.1,
+                1,
+                5000,
+                0,
+                locked=True,
+                blast_radius=50,
+            ),
         ],
     )
-    weapon_categories = [pistol, smg, bolt_action, assault_rifles, lmgs, shotguns, launchers]
+    weapon_categories = [
+        pistol,
+        smg,
+        bolt_action,
+        assault_rifles,
+        lmgs,
+        shotguns,
+        launchers,
+    ]
 
     pygame.init()
 
@@ -936,7 +1055,10 @@ if __name__ == '__main__':
 
     player_image = pygame.image.load(BASE_DIR / 'images/player.png').convert_alpha()
     player_mask = pygame.mask.from_surface(player_image)
-    zombie_images = [pygame.image.load(BASE_DIR / f'images/zombie{i}.png').convert_alpha() for i in range(1, 12)]
+    zombie_images = [
+        pygame.image.load(BASE_DIR / f'images/zombie{i}.png').convert_alpha()
+        for i in range(1, 12)
+    ]
     background_image = pygame.image.load(BASE_DIR / 'images/zombies.png').convert()
     chest_image = pygame.image.load(BASE_DIR / 'images/chest.png').convert_alpha()
     orb_image = pygame.image.load(BASE_DIR / 'images/orb.png').convert_alpha()
@@ -1013,7 +1135,9 @@ if __name__ == '__main__':
         keys = pygame.key.get_pressed()
         dt = clock.tick(constants['FPS']) / 1000.0
         current_time = pygame.time.get_ticks()
-        time_since_last_shot = current_time - last_fired_time[player.current_weapon.name]
+        time_since_last_shot = (
+            current_time - last_fired_time[player.current_weapon.name]
+        )
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1021,7 +1145,11 @@ if __name__ == '__main__':
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 3:
                     auto_firing = not auto_firing
-                    print('Auto-firing mode enabled' if auto_firing else 'Auto-firing mode disabled')
+                    print(
+                        'Auto-firing mode enabled'
+                        if auto_firing
+                        else 'Auto-firing mode disabled'
+                    )
                 elif event.button == 1 and show_upgrade_panel:
                     panel_width = 1600
                     panel_height = 900
@@ -1038,10 +1166,20 @@ if __name__ == '__main__':
                         row = i // options_per_row
                         col = i % options_per_row
 
-                        x = panel_x + col * (option_width + horizontal_padding) + horizontal_padding
-                        y = panel_y + row * (option_height + vertical_padding) + vertical_padding
+                        x = (
+                            panel_x
+                            + col * (option_width + horizontal_padding)
+                            + horizontal_padding
+                        )
+                        y = (
+                            panel_y
+                            + row * (option_height + vertical_padding)
+                            + vertical_padding
+                        )
 
-                        if pygame.Rect(x, y, option_width, option_height).collidepoint(mouse_pos):
+                        if pygame.Rect(x, y, option_width, option_height).collidepoint(
+                            mouse_pos
+                        ):
                             apply_upgrade(i)
                             show_upgrade_panel = False
                             break
@@ -1079,7 +1217,8 @@ if __name__ == '__main__':
                     elif event.key == pygame.K_r:
                         if (
                             not reloading[player.current_weapon.name]
-                            and player.current_weapon.ammo < player.current_weapon.max_ammo
+                            and player.current_weapon.ammo
+                            < player.current_weapon.max_ammo
                         ):
                             reload_start_time[player.current_weapon.name] = current_time
                             reloading[player.current_weapon.name] = True
@@ -1096,16 +1235,24 @@ if __name__ == '__main__':
                     if wave_delay_active:
                         wave_delay_active = False
                     if current_time - last_spawn_time >= constants['SPAWN_INTERVAL']:
-                        if zombies_to_spawn and len(zombies) < constants['MAX_ALIVE_ZOMBIES']:
+                        if (
+                            zombies_to_spawn
+                            and len(zombies) < constants['MAX_ALIVE_ZOMBIES']
+                        ):
                             zombie_type, count = random.choice(zombies_to_spawn)
                             spawn_zombie(zombie_type)
                             count -= 1
                             if count > 0:
                                 zombies_to_spawn = [
-                                    (t, c) if t != zombie_type else (t, count) for t, c in zombies_to_spawn
+                                    (t, c) if t != zombie_type else (t, count)
+                                    for t, c in zombies_to_spawn
                                 ]
                             else:
-                                zombies_to_spawn = [(t, c) for t, c in zombies_to_spawn if t != zombie_type]
+                                zombies_to_spawn = [
+                                    (t, c)
+                                    for t, c in zombies_to_spawn
+                                    if t != zombie_type
+                                ]
                             last_spawn_time = current_time
                         elif not zombies and not zombies_to_spawn:
                             wave_delay_active = True
@@ -1120,12 +1267,17 @@ if __name__ == '__main__':
                 bg_x = -camera.rect.x
                 bg_y = -camera.rect.y
                 scaled_background = pygame.transform.scale(
-                    background_image, (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+                    background_image,
+                    (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']),
                 )
-                screen_rect = pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+                screen_rect = pygame.Rect(
+                    0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']
+                )
                 image_rect = scaled_background.get_rect()
                 image_rect.topleft = (bg_x, bg_y)
-                cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
+                cropped_image = scaled_background.subsurface(
+                    screen_rect.clip(image_rect)
+                )
                 screen.blit(cropped_image, (0, 0))
 
                 # Then render all game elements
@@ -1134,8 +1286,12 @@ if __name__ == '__main__':
                         screen.blit(sprite.image, camera.apply(sprite))
 
                 # Now add the semi-transparent overlay
-                overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA)
-                overlay.fill((0, 0, 0, 75))  # Adjust alpha value (128) for desired transparency
+                overlay = pygame.Surface(
+                    (constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA
+                )
+                overlay.fill(
+                    (0, 0, 0, 75)
+                )  # Adjust alpha value (128) for desired transparency
                 screen.blit(overlay, (0, 0))
 
                 option_rects = render_upgrade_panel()
@@ -1153,24 +1309,32 @@ if __name__ == '__main__':
                     chest.open()
                     unlock_random_weapon()
 
-            if player.current_weapon.ammo == 0 and not reloading[player.current_weapon.name]:
+            if (
+                player.current_weapon.ammo == 0
+                and not reloading[player.current_weapon.name]
+            ):
                 reload_start_time[player.current_weapon.name] = current_time
                 reloading[player.current_weapon.name] = True
                 pygame.mixer.Sound.play(reload_sound)
 
             if (
                 reloading[player.current_weapon.name]
-                and current_time - reload_start_time[player.current_weapon.name] >= player.current_weapon.reload_time
+                and current_time - reload_start_time[player.current_weapon.name]
+                >= player.current_weapon.reload_time
             ):
                 player.current_weapon.ammo = player.current_weapon.max_ammo
                 reloading[player.current_weapon.name] = False
 
-            if not reloading[player.current_weapon.name] and time_since_last_shot >= player.current_weapon.fire_rate:
+            if (
+                not reloading[player.current_weapon.name]
+                and time_since_last_shot >= player.current_weapon.fire_rate
+            ):
                 mouse_buttons = pygame.mouse.get_pressed()
                 if mouse_buttons[0] or auto_firing:
                     if player.current_weapon.ammo > 0:
                         angle = math.atan2(
-                            adjusted_mouse_pos[1] - player.rect.centery, adjusted_mouse_pos[0] - player.rect.centerx
+                            adjusted_mouse_pos[1] - player.rect.centery,
+                            adjusted_mouse_pos[0] - player.rect.centerx,
                         )
                         flash_pos = (
                             player.rect.centerx + math.cos(angle) * 30,
@@ -1182,13 +1346,15 @@ if __name__ == '__main__':
                         if 'SG' in player.current_weapon.name:
                             for _ in range(10):
                                 pellet_angle = angle + random.uniform(
-                                    -player.current_weapon.spread_angle, player.current_weapon.spread_angle
+                                    -player.current_weapon.spread_angle,
+                                    player.current_weapon.spread_angle,
                                 )
                                 projectiles.add(create_projectile(pellet_angle))
                             pygame.mixer.Sound.play(fire_sound_mossberg)
                         else:
                             adjusted_angle = angle + random.uniform(
-                                -player.current_weapon.spread_angle, player.current_weapon.spread_angle
+                                -player.current_weapon.spread_angle,
+                                player.current_weapon.spread_angle,
                             )
                             projectiles.add(create_projectile(adjusted_angle))
 
@@ -1231,12 +1397,19 @@ if __name__ == '__main__':
                 start_pos = projectile.rect.center
                 end_pos = (start_pos[0] + projectile.dx, start_pos[1] + projectile.dy)
                 for zombie in zombies:
-                    if line_collision(start_pos, end_pos, zombie) and zombie not in projectile.zombies_hit:
+                    if (
+                        line_collision(start_pos, end_pos, zombie)
+                        and zombie not in projectile.zombies_hit
+                    ):
                         current_damage = projectile.get_current_damage()
                         zombie.take_damage(current_damage)
                         damage_color = projectile.get_penetration_color()
                         damage_text = FloatingText(
-                            zombie.rect.centerx, zombie.rect.top, int(current_damage), damage_color, blood_font
+                            zombie.rect.centerx,
+                            zombie.rect.top,
+                            int(current_damage),
+                            damage_color,
+                            blood_font,
                         )
                         floating_texts.add(damage_text)
                         projectile.reduce_penetration(zombie)
@@ -1244,7 +1417,9 @@ if __name__ == '__main__':
                         for _ in range(BloodParticle.PARTICLES_PER_SPRAY):
                             angle = random.uniform(0, 2 * math.pi)
                             speed = random.uniform(0.7, 1.5)
-                            blood_particle = BloodParticle(zombie.rect.center, angle, speed)
+                            blood_particle = BloodParticle(
+                                zombie.rect.center, angle, speed
+                            )
                             blood_particles.add(blood_particle)
 
                         if projectile.penetration <= 0:
@@ -1253,9 +1428,12 @@ if __name__ == '__main__':
             bg_x = -camera.rect.x
             bg_y = -camera.rect.y
             scaled_background = pygame.transform.scale(
-                background_image, (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+                background_image,
+                (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']),
             )
-            screen_rect = pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
+            screen_rect = pygame.Rect(
+                0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']
+            )
             image_rect = scaled_background.get_rect()
             image_rect.topleft = (bg_x, bg_y)
             cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
@@ -1263,7 +1441,13 @@ if __name__ == '__main__':
 
             progress = player.xp / level_thresholds[player.level + 1]
             draw_progress_bar(
-                screen, 10, constants['HEIGHT'] - 30, constants['WIDTH'] - 20, 20, progress, COLORS['RED']
+                screen,
+                10,
+                constants['HEIGHT'] - 30,
+                constants['WIDTH'] - 20,
+                20,
+                progress,
+                COLORS['RED'],
             )
 
             for group in all_sprites():
@@ -1283,13 +1467,27 @@ if __name__ == '__main__':
             render_text(f'Time: {elapsed_time:.2f} s', base_font, 475, 10)
             render_text(f'Wave: {current_wave}', base_font, 700, 10)
             render_text(f'Score: {player.score}', score_font, 875, 10)
-            render_text(f'FPS: {int(clock.get_fps())}', fps_font, constants['WIDTH'] - 140, 10, COLORS['GAMMA'])
-            render_text(f'Total Kills: {player.total_kills} (Remaining: {len(zombies)})', base_font, 10, 10)
+            render_text(
+                f'FPS: {int(clock.get_fps())}',
+                fps_font,
+                constants['WIDTH'] - 140,
+                10,
+                COLORS['GAMMA'],
+            )
+            render_text(
+                f'Total Kills: {player.total_kills} (Remaining: {len(zombies)})',
+                base_font,
+                10,
+                10,
+            )
 
             version_text = 'Alpha 1.02'
             version_surface = base_font.render(version_text, True, COLORS['WHITE'])
             version_rect = version_surface.get_rect()
-            version_rect.bottomright = (constants['WIDTH'] - 10, constants['HEIGHT'] - 40)
+            version_rect.bottomright = (
+                constants['WIDTH'] - 10,
+                constants['HEIGHT'] - 40,
+            )
             screen.blit(version_surface, version_rect)
 
             player_pos = camera.apply(player).topleft
@@ -1305,14 +1503,18 @@ if __name__ == '__main__':
             screen.blit(ammo_text_surface, ammo_text_pos)
 
             if auto_firing:
-                auto_fire_text = base_font.render('Auto-Fire: ON', True, COLORS['YELLOW'])
+                auto_fire_text = base_font.render(
+                    'Auto-Fire: ON', True, COLORS['YELLOW']
+                )
                 auto_fire_text_pos = (player_pos[0], player_pos[1] - -100)
                 screen.blit(auto_fire_text, auto_fire_text_pos)
 
             HealthBar(player)
             if reloading[player.current_weapon.name]:
                 reload_text = 'Reloading...'
-                reload_text_surface = base_font.render(reload_text, True, COLORS['YELLOW'])
+                reload_text_surface = base_font.render(
+                    reload_text, True, COLORS['YELLOW']
+                )
                 reload_text_pos = (player_pos[0], player_pos[1] - -120)
                 screen.blit(reload_text_surface, reload_text_pos)
         elif game_state == 'main_menu':

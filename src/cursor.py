@@ -36,4 +36,7 @@ class Cursor(pygame.sprite.Sprite):
     def draw(self, *, surface: pygame.Surface, center_pos: tuple[int, int]) -> None:
         """Blit to `surface`, centered on `center_pos`."""
 
-        surface.blit(self.image, (center_pos[0] - self.OUTER_RADIUS, center_pos[1] - self.OUTER_RADIUS))
+        surface.blit(
+            self.image,
+            (center_pos[0] - self.OUTER_RADIUS, center_pos[1] - self.OUTER_RADIUS),
+        )
