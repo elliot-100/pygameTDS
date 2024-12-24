@@ -14,12 +14,24 @@ class MuzzleFlash(pygame.sprite.Sprite):
         base_red = random.randint(220, 255)
         base_green = random.randint(100, 180)
         base_blue = random.randint(0, 50)
-        pygame.draw.circle(self.original_image, (base_red, base_green, base_blue, 230), (10, 10), 6)
+        pygame.draw.circle(
+            self.original_image, (base_red, base_green, base_blue, 230), (10, 10), 6
+        )
 
-        pygame.draw.circle(self.original_image, (base_red, base_green + 20, base_blue, 180), (20, 10), 9)
         pygame.draw.circle(
             self.original_image,
-            (min(base_red + 20, 255), min(base_green + 40, 255), min(base_blue + 20, 255), 130),
+            (base_red, base_green + 20, base_blue, 180),
+            (20, 10),
+            9,
+        )
+        pygame.draw.circle(
+            self.original_image,
+            (
+                min(base_red + 20, 255),
+                min(base_green + 40, 255),
+                min(base_blue + 20, 255),
+                130,
+            ),
             (30, 10),
             12,
         )
