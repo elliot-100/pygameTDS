@@ -1070,7 +1070,7 @@ if __name__ == '__main__':
     fire_sound_mossberg = pygame.mixer.Sound(BASE_DIR / 'sfx/mossberg.mp3')
     fire_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosin.mp3')
     firing_sound_mosin = pygame.mixer.Sound(BASE_DIR / 'sfx/mosinshot.mp3')
-    fire_sound_PKM = pygame.mixer.Sound(BASE_DIR / 'sfx/pkm.mp3')
+    fire_sound_pkm = pygame.mixer.Sound(BASE_DIR / 'sfx/pkm.mp3')
     fire_sound_skorpian = pygame.mixer.Sound(BASE_DIR / 'sfx/skorpian.mp3')
     fire_sound_svt = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
     fire_sound_rpg = pygame.mixer.Sound(BASE_DIR / 'sfx/bullet.mp3')
@@ -1361,7 +1361,7 @@ if __name__ == '__main__':
                         weapon_sound = {
                             'Glock(PDW)': fire_sound_beretta,
                             'Mosin(BOLT)': [firing_sound_mosin, fire_sound_mosin],
-                            'PKM(LMG)': fire_sound_PKM,
+                            'PKM(LMG)': fire_sound_pkm,
                             'Skorpian(SMG)': fire_sound_skorpian,
                             'AK-47(AR)': fire_sound_ak47,
                             # 'SVT-40(RIFLE)': fire_sound_svt,
