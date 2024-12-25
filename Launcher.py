@@ -22,7 +22,7 @@ from src.cursor import Cursor
 from src.energy_orb import EnergyOrb
 from src.floating_text import FloatingText
 from src.muzzle_flash import MuzzleFlash
-from src.weapons import Weapon, WeaponCategory
+from src.weapons import WeaponCategory
 
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     BASE_DIR = Path(sys._MEIPASS)
@@ -920,75 +920,7 @@ def all_sprites() -> list[pygame.sprite.Group]:
 
 
 if __name__ == '__main__':
-    pistol = WeaponCategory(
-        'pistols',
-        [
-            Weapon('Glock(PDW)', 20, 200, 24, 0.080, 15, 1900, 1, locked=False),
-        ],
-    )
-    smg = WeaponCategory(
-        'SMG',
-        [
-            Weapon('Skorpian(SMG)', 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
-        ],
-    )
-    rifles = WeaponCategory(
-        'Rifles',
-        [
-            Weapon('SVT-40(RIFLE)', 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
-        ],
-    )
-    bolt_action = WeaponCategory(
-        'Bolt Action',
-        [
-            Weapon('Mosin(BOLT)', 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
-        ],
-    )
-    assault_rifles = WeaponCategory(
-        'Assault Rifle',
-        [
-            Weapon('AK-47(AR)', 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
-        ],
-    )
-    lmgs = WeaponCategory(
-        'LMG',
-        [
-            Weapon('PKM(LMG)', 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
-        ],
-    )
-    shotguns = WeaponCategory(
-        'Shotgun',
-        [
-            Weapon('Mossberg 500(SG)', 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
-            Weapon('Remington 870(SG)', 20, 1100, 28, 0.55, 6, 2600, 3, locked=True),
-        ],
-    )
-    launchers = WeaponCategory(
-        'Launchers',
-        [
-            Weapon(
-                'RPG-7(BLAST)',
-                20,
-                5000,
-                100,
-                0.1,
-                1,
-                5000,
-                0,
-                locked=True,
-                blast_radius=50,
-            ),
-        ],
-    )
-    weapon_categories = [
-        pistol,
-        smg,
-        bolt_action,
-        assault_rifles,
-        lmgs,
-        shotguns,
-        launchers,
-    ]
+    weapon_categories = WeaponCategory.setup()
 
     pygame.init()
 
