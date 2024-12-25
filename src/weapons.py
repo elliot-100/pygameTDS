@@ -41,40 +41,38 @@ class WeaponCategory:
         smgs = cls(
             'SMG',
             [
-                Weapon('Skorpian(SMG)', 20, 90, 24, 0.080, 30, 1900, 3, locked=True),
+                Weapon('Skorpian(SMG)', 20, 90, 24, 0.080, 30, 1900, 3),
             ],
         )
         # rifles = cls(
         #     'Rifles',
         #     [
-        #         Weapon('SVT-40(RIFLE)', 20, 440, 59, 0.068, 10, 2250, 5, locked=True),
+        #         Weapon('SVT-40(RIFLE)', 20, 440, 59, 0.068, 10, 2250, 5),
         #     ],
         # )
         bolt_actions = cls(
             'Bolt Action',
             [
-                Weapon('Mosin(BOLT)', 20, 2500, 85, 0.002, 5, 2700, 7, locked=True),
+                Weapon('Mosin(BOLT)', 20, 2500, 85, 0.002, 5, 2700, 7),
             ],
         )
         assault_rifles = cls(
             'Assault Rifle',
             [
-                Weapon('AK-47(AR)', 20, 100, 35, 0.090, 31, 2000, 3, locked=True),
+                Weapon('AK-47(AR)', 20, 100, 35, 0.090, 31, 2000, 3),
             ],
         )
         lmgs = cls(
             'LMG',
             [
-                Weapon('PKM(LMG)', 20, 170, 30, 0.2, 51, 3000, 5, locked=True),
+                Weapon('PKM(LMG)', 20, 170, 30, 0.2, 51, 3000, 5),
             ],
         )
         shotguns = cls(
             'Shotgun',
             [
                 Weapon('Mossberg 500(SG)', 20, 1200, 25, 0.6, 5, 2500, 3, locked=False),
-                Weapon(
-                    'Remington 870(SG)', 20, 1100, 28, 0.55, 6, 2600, 3, locked=True
-                ),
+                Weapon('Remington 870(SG)', 20, 1100, 28, 0.55, 6, 2600, 3),
             ],
         )
         launchers = cls(
@@ -89,7 +87,6 @@ class WeaponCategory:
                     1,
                     5000,
                     0,
-                    locked=True,
                     blast_radius=50,
                 ),
             ],
