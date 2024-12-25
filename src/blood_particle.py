@@ -35,8 +35,8 @@ class BloodParticle(pygame.sprite.Sprite):
         return {cls(pos=pos) for _ in range(cls.PARTICLES_PER_SPRAY)}
 
     def update(self) -> None:
-        self.rect.x += self.dx
-        self.rect.y += self.dy
+        self.rect.x += int(self.dx)
+        self.rect.y += int(self.dy)
         self.dx *= 1 - self.DECELERATION
         self.dy *= 1 - self.DECELERATION
 
