@@ -1,3 +1,5 @@
+"""Contains `BloodParticle` class."""
+
 import math
 import random
 from typing import ClassVar, Self
@@ -8,8 +10,11 @@ from src.constants import COLORS
 
 
 class BloodParticle(pygame.sprite.Sprite):
+    """Represents a blood particle."""
+
     PARTICLES_PER_SPRAY: ClassVar = 5
-    LIFETIME: ClassVar = 100000
+    LIFETIME: ClassVar = 100 * 1000
+    """Milliseconds."""
     INITIAL_SPEED_MIN: ClassVar = 0.7
     """Minimum initial speed, pixels per frame."""
     INITIAL_SPEED_MAX: ClassVar = 1.5
@@ -31,10 +36,11 @@ class BloodParticle(pygame.sprite.Sprite):
 
     @classmethod
     def spawn_spray(cls, *, pos: tuple[int, int]) -> set[Self]:
-        """Return a set of `BloodParticle`s."""
+        """Return a set of `BloodParticle`s representing a spray."""
         return {cls(pos=pos) for _ in range(cls.PARTICLES_PER_SPRAY)}
 
     def update(self) -> None:
+        """Update the entity."""
         self.rect.x += int(self.dx)
         self.rect.y += int(self.dy)
         self.dx *= 1 - self.DECELERATION
