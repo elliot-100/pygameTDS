@@ -233,12 +233,6 @@ class Projectile(pygame.sprite.Sprite):
                     )
                     floating_texts.add(damage_text)
 
-                    for _ in range(BloodParticle.PARTICLES_PER_SPRAY):
-                        angle = random.uniform(0, 2 * math.pi)
-                        speed = random.uniform(0.7, 1.5)
-                        blood_particle = BloodParticle(zombie.rect.center, angle, speed)
-                        blood_particles.add(blood_particle)
-
     def get_penetration_color(self):
         hit_count = len(self.zombies_hit)
         color_index = min(hit_count, len(PENETRATION_COLORS) - 1)
@@ -1361,16 +1355,12 @@ if __name__ == '__main__':
                             blood_font,
                         )
                         floating_texts.add(damage_text)
-                        projectile.reduce_penetration(zombie)
-
-                        for _ in range(BloodParticle.PARTICLES_PER_SPRAY):
-                            angle = random.uniform(0, 2 * math.pi)
-                            speed = random.uniform(0.7, 1.5)
-                            blood_particle = BloodParticle(
-                                zombie.rect.center, angle, speed
+                        blood_particles.add(
+                            *BloodParticle.spawn_spray(
+                                pos=zombie.rect.center,
                             )
-                            blood_particles.add(blood_particle)
-
+                        )
+                        projectile.reduce_penetration(zombie)
                         if projectile.penetration <= 0:
                             projectile.kill()
 
