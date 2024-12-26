@@ -10,7 +10,14 @@ import pygame
 
 from src.blood_particle import BloodParticle
 from src.chest import Chest
-from src.constants import COLORS, PENETRATION_COLORS
+from src.constants import (
+    COLORS,
+    GAME_WINDOW,
+    LEVEL_THRESHOLDS,
+    PENETRATION_COLORS,
+    PLAY_AREA,
+    UPGRADE_OPTIONS,
+)
 from src.cursor import Cursor
 from src.energy_orb import EnergyOrb
 from src.floating_text import FloatingText
@@ -21,69 +28,6 @@ if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
     BASE_DIR = Path(sys._MEIPASS)
 else:
     BASE_DIR = Path(__file__).parent
-
-level_thresholds = {
-    1: 0,
-    2: 90,
-    3: 180,
-    4: 280,
-    5: 390,
-    6: 515,
-    7: 655,
-    8: 810,
-    9: 980,
-    10: 1170,
-    11: 1380,
-    12: 1615,
-    13: 1875,
-    14: 2155,
-    15: 2465,
-    16: 2805,
-    17: 3175,
-    18: 3580,
-    19: 4020,
-    20: 4500,
-    21: 5025,
-    22: 5600,
-    23: 6225,
-    24: 6905,
-    25: 7645,
-    26: 8450,
-    27: 9325,
-    28: 10275,
-    29: 11305,
-    30: 12425,
-}
-
-constants = {
-    'WIDTH': 1920,
-    'HEIGHT': 1080,
-    'ZOMBIE_RADIUS': 0.1,
-    'PLAYER_SPEED': 0.7,
-    'SPAWN_INTERVAL': 450,
-    'SMALL_CIRCLE_LIFETIME': 9999,
-    'FPS': 60,
-    'ZOMBIE_FADE_DURATION': 150,
-    'MAX_ALIVE_ZOMBIES': 100,
-    'HEALTH_BAR_VISIBLE_DURATION': 120,
-    'PLAYER_HEALTH': 7500,
-    'ZOMBIE_MIN_SPAWN_DISTANCE': 150,
-    'ZOMBIE_AVOIDANCE_RADIUS': 5,
-    'WAVE_DELAY': 10000,
-    'VIRTUAL_WIDTH': 2020,
-    'VIRTUAL_HEIGHT': 1180,
-}
-upgrade_options = [
-    'HP +20%',
-    'Bullet SPD 10%',
-    'Bullet DMG 5%',
-    'Reload SPD +5%',
-    'Mag Ammo +5%',
-    'Fire Rate +5%',
-    'Precision +5%',
-    'Increase XP Gain',
-    'a Random Weapon',
-]
 
 
 class Camera:
@@ -102,13 +46,13 @@ class Camera:
 
     def update(self, target):
         """Updates the camera's position to follow the target."""
-        x = -target.rect.centerx + int(constants['WIDTH'] / 2)
-        y = -target.rect.centery + int(constants['HEIGHT'] / 2)
+        x = -target.rect.centerx + int(GAME_WINDOW['WIDTH'] / 2)
+        y = -target.rect.centery + int(GAME_WINDOW['HEIGHT'] / 2)
 
         x = min(0, x)
         y = min(0, y)
-        x = max(-(constants['VIRTUAL_WIDTH'] - constants['WIDTH']), x)
-        y = max(-(constants['VIRTUAL_HEIGHT'] - constants['HEIGHT']), y)
+        x = max(-(PLAY_AREA['WIDTH'] - GAME_WINDOW['WIDTH']), x)
+        y = max(-(PLAY_AREA['HEIGHT'] - GAME_WINDOW['HEIGHT']), y)
 
         self.rect.topleft = (x, y)
 
@@ -116,14 +60,17 @@ class Camera:
 class Player(pygame.sprite.Sprite):
     """Represents the player character."""
 
+    INITIAL_SPEED: ClassVar = 0.7
+    MAX_HEALTH: ClassVar = 7500
+
     def __init__(self, x, y, image):
         super().__init__()
         self.original_image = image
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = player_mask
-        self.speed = constants['PLAYER_SPEED']
-        self.max_health = constants['PLAYER_HEALTH']
+        self.speed = self.INITIAL_SPEED
+        self.max_health = self.MAX_HEALTH
         self.health = self.max_health
         self.level = 1
         self.xp = 0
@@ -195,9 +142,9 @@ class Player(pygame.sprite.Sprite):
         new_x = self.rect.x + self.dx
         new_y = self.rect.y + self.dy
 
-        if 0 <= new_x < constants['VIRTUAL_WIDTH'] - self.rect.width:
+        if 0 <= new_x < PLAY_AREA['WIDTH'] - self.rect.width:
             self.rect.x = new_x
-        if 0 <= new_y < constants['VIRTUAL_HEIGHT'] - self.rect.height:
+        if 0 <= new_y < PLAY_AREA['HEIGHT'] - self.rect.height:
             self.rect.y = new_y
 
         angle = math.atan2(
@@ -237,9 +184,9 @@ class Player(pygame.sprite.Sprite):
 
         self.xp += xp_gained
 
-        while self.xp >= level_thresholds[self.level + 1]:
+        while self.xp >= LEVEL_THRESHOLDS[self.level + 1]:
             self.level += 1
-            self.xp -= level_thresholds[self.level]
+            self.xp -= LEVEL_THRESHOLDS[self.level]
             show_upgrade_panel = True
 
 
@@ -262,9 +209,9 @@ class Projectile(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += self.dx
         self.rect.y += self.dy
-        if not pygame.Rect(
-            0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']
-        ).colliderect(self.rect):
+        if not pygame.Rect(0, 0, PLAY_AREA['WIDTH'], PLAY_AREA['HEIGHT']).colliderect(
+            self.rect
+        ):
             self.kill()
         else:
             for zombie in zombies:
@@ -324,6 +271,13 @@ class ZombieClass:
 
 
 class Zombie(pygame.sprite.Sprite):
+    FADE_DURATION: ClassVar = 150
+    MAX_ALIVE_COUNT: ClassVar = 100
+    HEALTH_BAR_VISIBLE_DURATION: ClassVar = 120
+    AVOIDANCE_RADIUS: ClassVar = 5
+    SPAWN_INTERVAL: ClassVar = 450
+    WAVE_DELAY: ClassVar = 10000
+
     def __init__(self, x, y, player, zombie_image, zombie_class):
         super().__init__()
         self.original_image = zombie_image
@@ -346,8 +300,8 @@ class Zombie(pygame.sprite.Sprite):
         self.hitbox = pygame.Rect(0, 0, hitbox_size, hitbox_size)
         self.hitbox.center = self.rect.center
         self.grid_size = (
-            constants['VIRTUAL_WIDTH'] // 16,
-            constants['VIRTUAL_HEIGHT'] // 16,
+            PLAY_AREA['WIDTH'] // 16,
+            PLAY_AREA['HEIGHT'] // 16,
         )
         self.path = []
         self.path_update_interval = 1500
@@ -371,8 +325,8 @@ class Zombie(pygame.sprite.Sprite):
         return 'a'
 
     def get_new_roaming_target(self):
-        return random.randint(0, constants['VIRTUAL_WIDTH']), random.randint(
-            0, constants['VIRTUAL_HEIGHT']
+        return random.randint(0, PLAY_AREA['WIDTH']), random.randint(
+            0, PLAY_AREA['HEIGHT']
         )
 
     def update(self):
@@ -385,7 +339,7 @@ class Zombie(pygame.sprite.Sprite):
             if (
                 self.show_health_bar
                 and current_time - self.last_damage_time
-                > constants['HEALTH_BAR_VISIBLE_DURATION']
+                > self.HEALTH_BAR_VISIBLE_DURATION
             ):
                 self.show_health_bar = False
             if current_time - self.last_path_update > self.path_update_interval:
@@ -492,7 +446,7 @@ class Zombie(pygame.sprite.Sprite):
                 distance = pygame.math.Vector2(self.rect.center) - pygame.math.Vector2(
                     other_zombie.rect.center
                 )
-                if 0 < distance.length() < constants['ZOMBIE_AVOIDANCE_RADIUS']:
+                if 0 < distance.length() < self.AVOIDANCE_RADIUS:
                     avoidance_force += distance.normalize()
 
         if avoidance_force.length() > 0:
@@ -501,9 +455,7 @@ class Zombie(pygame.sprite.Sprite):
             self.rect.y += avoidance_force.y
 
     def check_boundaries(self):
-        self.rect.clamp_ip(
-            pygame.Rect(0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT'])
-        )
+        self.rect.clamp_ip(pygame.Rect(0, 0, PLAY_AREA['WIDTH'], PLAY_AREA['HEIGHT']))
 
     def rotate_to_target(self):
         if self.path:
@@ -522,7 +474,7 @@ class Zombie(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if self.health < self.max_health and not self.killed:
             time_since_last_damage = current_time - self.last_damage_time
-            if time_since_last_damage < constants['HEALTH_BAR_VISIBLE_DURATION']:
+            if time_since_last_damage < self.HEALTH_BAR_VISIBLE_DURATION:
                 HealthBar(self)
 
     def take_damage(self, amount):
@@ -609,8 +561,8 @@ class Zombie(pygame.sprite.Sprite):
     def fade_out(self):
         current_time = pygame.time.get_ticks()
         elapsed_time = current_time - self.fade_start_time
-        if elapsed_time < constants['ZOMBIE_FADE_DURATION']:
-            alpha = 255 - (elapsed_time / constants['ZOMBIE_FADE_DURATION']) * 255
+        if elapsed_time < self.FADE_DURATION:
+            alpha = 255 - (elapsed_time / self.FADE_DURATION) * 255
             self.image.set_alpha(alpha)
         else:
             self.kill()
@@ -664,14 +616,16 @@ def get_neighbors(pos, grid_size):
 
 def render_upgrade_panel():
     # Create semi-transparent overlay for the whole screen
-    overlay = pygame.Surface((constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA)
+    overlay = pygame.Surface(
+        (GAME_WINDOW['WIDTH'], GAME_WINDOW['HEIGHT']), pygame.SRCALPHA
+    )
     overlay.fill((0, 0, 0, 180))  # Black with alpha=180
     screen.blit(overlay, (0, 0))
 
     panel_width = 900
     panel_height = 450
-    panel_x = (constants['WIDTH'] - panel_width) // 2
-    panel_y = (constants['HEIGHT'] - panel_height) // 2
+    panel_x = (GAME_WINDOW['WIDTH'] - panel_width) // 2
+    panel_y = (GAME_WINDOW['HEIGHT'] - panel_height) // 2
 
     # Create semi-transparent panel surface with alpha channel
     panel = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
@@ -683,7 +637,7 @@ def render_upgrade_panel():
     )
 
     option_rects = []
-    for i, option in enumerate(upgrade_options):
+    for i, option in enumerate(UPGRADE_OPTIONS):
         x = panel_x + (i % 3) * 300 + 25
         y = panel_y + (i // 3) * 150
         rect = pygame.Rect(x, y, 250, 100)
@@ -731,7 +685,7 @@ def apply_upgrade(index):
     elif index == 8:
         unlock_random_weapon()
 
-    print(f'Applied upgrade: {upgrade_options[index]}')
+    print(f'Applied upgrade: {UPGRADE_OPTIONS[index]}')
 
 
 def display_damage_text(damage, position, color):
@@ -761,18 +715,18 @@ def manage_waves():
     zombies_to_spawn = []
     for zombie_type, count in zombie_distribution:
         while count > 0:
-            spawn_count = min(count, constants['MAX_ALIVE_ZOMBIES'])
+            spawn_count = min(count, Zombie.MAX_ALIVE_COUNT)
             zombies_to_spawn.append((zombie_type, spawn_count))
             count -= spawn_count
 
-    pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
-    wave_start_time = pygame.time.get_ticks() + constants['WAVE_DELAY']
+    pygame.time.set_timer(SPAWN_ZOMBIE, Zombie.SPAWN_INTERVAL)
+    wave_start_time = pygame.time.get_ticks() + Zombie.WAVE_DELAY
 
     if current_wave > 1:
         chests.add(
             Chest(
-                x=constants['VIRTUAL_WIDTH'] // 2,
-                y=constants['VIRTUAL_HEIGHT'] // 2,
+                x=PLAY_AREA['WIDTH'] // 2,
+                y=PLAY_AREA['HEIGHT'] // 2,
                 image=chest_image,
             )
         )
@@ -805,18 +759,18 @@ def calculate_zombies(wave):
 def spawn_zombie(zombie_type):
     spawn_side = random.choice(['top', 'bottom', 'left', 'right'])
     if spawn_side == 'top':
-        x, y = random.randint(50, constants['VIRTUAL_WIDTH']), 50
+        x, y = random.randint(50, PLAY_AREA['WIDTH']), 50
     elif spawn_side == 'bottom':
         x, y = (
-            random.randint(50, constants['VIRTUAL_WIDTH']),
-            constants['VIRTUAL_HEIGHT'],
+            random.randint(50, PLAY_AREA['WIDTH']),
+            PLAY_AREA['HEIGHT'],
         )
     elif spawn_side == 'left':
-        x, y = 0, random.randint(50, constants['VIRTUAL_HEIGHT'])
+        x, y = 0, random.randint(50, PLAY_AREA['HEIGHT'])
     else:
         x, y = (
-            constants['VIRTUAL_WIDTH'],
-            random.randint(50, constants['VIRTUAL_HEIGHT']),
+            PLAY_AREA['WIDTH'],
+            random.randint(50, PLAY_AREA['HEIGHT']),
         )
     zombie_classes = {
         'a': (ZombieClass.a, zombie_images[0]),
@@ -841,10 +795,10 @@ def spawn_zombie(zombie_type):
 def restart_game():
     global current_wave
     current_wave = 0
-    player.health = constants['PLAYER_HEALTH']
+    player.health = player.max_health
     player.rect.center = (
-        constants['VIRTUAL_WIDTH'] // 2,
-        constants['VIRTUAL_HEIGHT'] // 2,
+        PLAY_AREA['WIDTH'] // 2,
+        PLAY_AREA['HEIGHT'] // 2,
     )
 
     for group in all_sprites():
@@ -876,14 +830,14 @@ def draw_progress_bar(surface, x, y, width, height, progress, color):
     level_text_rect = level_text.get_rect(midleft=(x + 10, y + height // 2))
     surface.blit(level_text, level_text_rect)
     xp_text = base_font.render(
-        f'{player.xp}/{level_thresholds[player.level + 1]}', True, COLORS['WHITE']
+        f'{player.xp}/{LEVEL_THRESHOLDS[player.level + 1]}', True, COLORS['WHITE']
     )
     xp_text_rect = xp_text.get_rect(midright=(x + width - 10, y + height // 2))
     surface.blit(xp_text, xp_text_rect)
 
 
 def render_text_screen(content):
-    max_x, max_y = constants['WIDTH'], constants['HEIGHT']
+    max_x, max_y = GAME_WINDOW['WIDTH'], GAME_WINDOW['HEIGHT']
     center_x, center_y = max_x // 2, max_y // 2
     base_left_margin = 100
     left_margin = base_left_margin
@@ -1050,7 +1004,7 @@ if __name__ == '__main__':
     weapon_font = pygame.font.Font(BASE_DIR / 'fonts/ps2.ttf', 17)
     blood_font = pygame.font.Font(BASE_DIR / 'fonts/bloody.ttf', 20)
 
-    screen = pygame.display.set_mode((constants['WIDTH'], constants['HEIGHT']))
+    screen = pygame.display.set_mode((GAME_WINDOW['WIDTH'], GAME_WINDOW['HEIGHT']))
     pygame.display.set_caption('TBBP Game')
 
     player_image = pygame.image.load(BASE_DIR / 'images/player.png').convert_alpha()
@@ -1088,16 +1042,16 @@ if __name__ == '__main__':
 
     fps_color = COLORS['GAMMA']
     clock = pygame.time.Clock()
-    camera = Camera(constants['WIDTH'], constants['HEIGHT'])
+    camera = Camera(GAME_WINDOW['WIDTH'], GAME_WINDOW['HEIGHT'])
     player = Player(
-        x=constants['VIRTUAL_WIDTH'] // 2,
-        y=constants['VIRTUAL_HEIGHT'] // 2,
+        x=PLAY_AREA['WIDTH'] // 2,
+        y=PLAY_AREA['HEIGHT'] // 2,
         image=player_image,
     )
     players.add(player)
 
     SPAWN_ZOMBIE = pygame.USEREVENT + 1
-    pygame.time.set_timer(SPAWN_ZOMBIE, constants['SPAWN_INTERVAL'])
+    pygame.time.set_timer(SPAWN_ZOMBIE, Zombie.SPAWN_INTERVAL)
     current_wave = 1
     zombies_to_spawn = []
 
@@ -1133,7 +1087,7 @@ if __name__ == '__main__':
         mouse_pos = pygame.mouse.get_pos()
         adjusted_mouse_pos = get_adjusted_mouse_pos(camera)
         keys = pygame.key.get_pressed()
-        dt = clock.tick(constants['FPS']) / 1000.0
+        dt = clock.tick(GAME_WINDOW['FPS']) / 1000.0
         current_time = pygame.time.get_ticks()
         time_since_last_shot = (
             current_time - last_fired_time[player.current_weapon.name]
@@ -1162,7 +1116,7 @@ if __name__ == '__main__':
                     horizontal_padding = 50
                     vertical_padding = 50
 
-                    for i, option in enumerate(upgrade_options):
+                    for i, option in enumerate(UPGRADE_OPTIONS):
                         row = i // options_per_row
                         col = i % options_per_row
 
@@ -1234,11 +1188,8 @@ if __name__ == '__main__':
                 if current_time >= wave_start_time:
                     if wave_delay_active:
                         wave_delay_active = False
-                    if current_time - last_spawn_time >= constants['SPAWN_INTERVAL']:
-                        if (
-                            zombies_to_spawn
-                            and len(zombies) < constants['MAX_ALIVE_ZOMBIES']
-                        ):
+                    if current_time - last_spawn_time >= Zombie.SPAWN_INTERVAL:
+                        if zombies_to_spawn and len(zombies) < Zombie.MAX_ALIVE_COUNT:
                             zombie_type, count = random.choice(zombies_to_spawn)
                             spawn_zombie(zombie_type)
                             count -= 1
@@ -1268,11 +1219,9 @@ if __name__ == '__main__':
                 bg_y = -camera.rect.y
                 scaled_background = pygame.transform.scale(
                     background_image,
-                    (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']),
+                    (PLAY_AREA['WIDTH'], PLAY_AREA['HEIGHT']),
                 )
-                screen_rect = pygame.Rect(
-                    0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']
-                )
+                screen_rect = pygame.Rect(0, 0, PLAY_AREA['WIDTH'], PLAY_AREA['HEIGHT'])
                 image_rect = scaled_background.get_rect()
                 image_rect.topleft = (bg_x, bg_y)
                 cropped_image = scaled_background.subsurface(
@@ -1287,7 +1236,7 @@ if __name__ == '__main__':
 
                 # Now add the semi-transparent overlay
                 overlay = pygame.Surface(
-                    (constants['WIDTH'], constants['HEIGHT']), pygame.SRCALPHA
+                    (GAME_WINDOW['WIDTH'], GAME_WINDOW['HEIGHT']), pygame.SRCALPHA
                 )
                 overlay.fill(
                     (0, 0, 0, 75)
@@ -1429,22 +1378,20 @@ if __name__ == '__main__':
             bg_y = -camera.rect.y
             scaled_background = pygame.transform.scale(
                 background_image,
-                (constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']),
+                (PLAY_AREA['WIDTH'], PLAY_AREA['HEIGHT']),
             )
-            screen_rect = pygame.Rect(
-                0, 0, constants['VIRTUAL_WIDTH'], constants['VIRTUAL_HEIGHT']
-            )
+            screen_rect = pygame.Rect(0, 0, PLAY_AREA['WIDTH'], PLAY_AREA['HEIGHT'])
             image_rect = scaled_background.get_rect()
             image_rect.topleft = (bg_x, bg_y)
             cropped_image = scaled_background.subsurface(screen_rect.clip(image_rect))
             screen.blit(cropped_image, (0, 0))
 
-            progress = player.xp / level_thresholds[player.level + 1]
+            progress = player.xp / LEVEL_THRESHOLDS[player.level + 1]
             draw_progress_bar(
                 screen,
                 10,
-                constants['HEIGHT'] - 30,
-                constants['WIDTH'] - 20,
+                GAME_WINDOW['HEIGHT'] - 30,
+                GAME_WINDOW['WIDTH'] - 20,
                 20,
                 progress,
                 COLORS['RED'],
@@ -1470,7 +1417,7 @@ if __name__ == '__main__':
             render_text(
                 f'FPS: {int(clock.get_fps())}',
                 fps_font,
-                constants['WIDTH'] - 140,
+                GAME_WINDOW['WIDTH'] - 140,
                 10,
                 COLORS['GAMMA'],
             )
@@ -1485,8 +1432,8 @@ if __name__ == '__main__':
             version_surface = base_font.render(version_text, True, COLORS['WHITE'])
             version_rect = version_surface.get_rect()
             version_rect.bottomright = (
-                constants['WIDTH'] - 10,
-                constants['HEIGHT'] - 40,
+                GAME_WINDOW['WIDTH'] - 10,
+                GAME_WINDOW['HEIGHT'] - 40,
             )
             screen.blit(version_surface, version_rect)
 
