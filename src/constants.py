@@ -1,5 +1,14 @@
 """Constants for the game."""
 
+GAME_WINDOW = {
+    'WIDTH': 1920,
+    'HEIGHT': 1080,
+    'FPS': 60,
+}
+PLAY_AREA = {
+    'WIDTH': 2020,
+    'HEIGHT': 1180,
+}
 COLORS: dict[str, tuple[int, int, int]] = {
     'WHITE': (255, 255, 255),
     'RED': (255, 0, 0),
