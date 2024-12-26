@@ -285,12 +285,9 @@ class Zombie(pygame.sprite.Sprite):
         self.blood_value = zombie_class['BLOOD']
 
         self.health = self.max_health
-        self.fading = False
-        self.fade_start_time = 0
-        self.last_damage_time = 0
-        self.roaming = True
+        self.fade_start_time = None
+        self.last_damage_time = None
         self.roaming_target = self.get_new_roaming_target()
-        self.detect_radius = 12.5
         self.killed = False
         hitbox_size = int(self.rect.width * 0.5)
         self.hitbox = pygame.Rect(0, 0, hitbox_size, hitbox_size)
