@@ -251,17 +251,17 @@ class Projectile(pygame.sprite.Sprite):
 
 
 class ZombieClass:
-    a = {'HEALTH': 50, 'SPEED': 1.0}
-    b = {'HEALTH': 66, 'SPEED': 1.1}
-    c = {'HEALTH': 99, 'SPEED': 1.2}
-    d = {'HEALTH': 133, 'SPEED': 1.3}
-    e = {'HEALTH': 166, 'SPEED': 1.4}
-    f = {'HEALTH': 199, 'SPEED': 1.5}
-    g = {'HEALTH': 233, 'SPEED': 1.6}
-    h = {'HEALTH': 266, 'SPEED': 1.7}
-    i = {'HEALTH': 299, 'SPEED': 1.8}
-    j = {'HEALTH': 333, 'SPEED': 1.9}
-    k = {'HEALTH': 444, 'SPEED': 2.0}
+    a = {'HEALTH': 50, 'SPEED': 1.0, 'SCORE': 5, 'BLOOD': 1}
+    b = {'HEALTH': 66, 'SPEED': 1.1, 'SCORE': 10, 'BLOOD': 2}
+    c = {'HEALTH': 99, 'SPEED': 1.2, 'SCORE': 15, 'BLOOD': 3}
+    d = {'HEALTH': 133, 'SPEED': 1.3, 'SCORE': 20, 'BLOOD': 4}
+    e = {'HEALTH': 166, 'SPEED': 1.4, 'SCORE': 25, 'BLOOD': 5}
+    f = {'HEALTH': 199, 'SPEED': 1.5, 'SCORE': 30, 'BLOOD': 6}
+    g = {'HEALTH': 233, 'SPEED': 1.6, 'SCORE': 35, 'BLOOD': 7}
+    h = {'HEALTH': 266, 'SPEED': 1.7, 'SCORE': 40, 'BLOOD': 8}
+    i = {'HEALTH': 299, 'SPEED': 1.8, 'SCORE': 45, 'BLOOD': 9}
+    j = {'HEALTH': 333, 'SPEED': 1.9, 'SCORE': 50, 'BLOOD': 10}
+    k = {'HEALTH': 444, 'SPEED': 2.0, 'SCORE': 55, 'BLOOD': 11}
 
 
 class Zombie(pygame.sprite.Sprite):
@@ -274,15 +274,17 @@ class Zombie(pygame.sprite.Sprite):
 
     def __init__(self, x, y, player, zombie_image, zombie_class):
         super().__init__()
+        self.player = player
         self.original_image = zombie_image
         self.image = self.original_image.copy()
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = pygame.mask.from_surface(self.image)
         self.speed = zombie_class['SPEED']
-        self.player = player
         self.max_health = zombie_class['HEALTH']
+        self.score_value = zombie_class['SCORE']
+        self.blood_value = zombie_class['BLOOD']
+
         self.health = self.max_health
-        self.zombie_class_name = self.get_class_name(zombie_class)
         self.fading = False
         self.fade_start_time = 0
         self.last_damage_time = 0
@@ -313,12 +315,6 @@ class Zombie(pygame.sprite.Sprite):
         ]
         self.flash_active = False
         self.flash_start_time = 0
-
-    def get_class_name(self, zombie_class):
-        for name, cls in vars(ZombieClass).items():
-            if isinstance(cls, dict) and cls == zombie_class:
-                return name
-        return 'a'
 
     def get_new_roaming_target(self):
         return random.randint(0, PLAY_AREA['WIDTH']), random.randint(
@@ -498,9 +494,8 @@ class Zombie(pygame.sprite.Sprite):
             self.fading = True
             self.fade_start_time = pygame.time.get_ticks()
             self.player.total_kills += 1
-            score_gained = self.get_score_value()
-            self.player.score += score_gained
-            player.update_level_and_xp(score_gained + self.blood())
+            self.player.score += self.score_value
+            player.update_level_and_xp(self.score_value + self.blood_value)
 
             energy_orbs.add(
                 EnergyOrb(
@@ -509,38 +504,6 @@ class Zombie(pygame.sprite.Sprite):
                     image=orb_image,
                 )
             )
-
-    def get_score_value(self):
-        score_table = {
-            'a': 5,
-            'b': 10,
-            'c': 15,
-            'd': 20,
-            'e': 25,
-            'f': 30,
-            'g': 35,
-            'h': 40,
-            'i': 45,
-            'j': 50,
-            'k': 55,
-        }
-        return score_table.get(self.zombie_class_name, 5)
-
-    def blood(self):
-        bloodline_table = {
-            'a': 1,
-            'b': 2,
-            'c': 3,
-            'd': 4,
-            'e': 5,
-            'f': 6,
-            'g': 7,
-            'h': 8,
-            'i': 9,
-            'j': 10,
-            'k': 11,
-        }
-        return bloodline_table.get(self.zombie_class_name, 1)
 
     def flash(self):
         self.image.fill(COLORS['WHITE'], special_flags=pygame.BLEND_ADD)
