@@ -10,6 +10,7 @@ def test_class_imports() -> None:
     from src.floating_text import FloatingText
     from src.muzzle_flash import MuzzleFlash
     from src.weapons import Weapon, WeaponCategory
+
     # assert
     assert BloodParticle
     assert Camera
